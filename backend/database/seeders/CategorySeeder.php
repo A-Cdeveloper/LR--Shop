@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\File;
 
 class CategorySeeder extends Seeder
 {
@@ -27,7 +28,21 @@ class CategorySeeder extends Seeder
             ['name' => 'Smart Home', 'slug' => 'smart-home', 'description' => 'Smart lights, plugs and hubs'],
         ];
 
+        $sourceDir = database_path('seeders/images/categories');
+        $targetDir = storage_path('app/public/categories');
+
+        File::ensureDirectoryExists($targetDir);
+
         foreach ($categories as $category) {
+            $filename = $category['slug'].'.jpg';
+            $source = $sourceDir.DIRECTORY_SEPARATOR.$filename;
+            $target = $targetDir.DIRECTORY_SEPARATOR.$filename;
+
+            if (File::exists($source)) {
+                File::copy($source, $target);
+                $category['image'] = 'categories/'.$filename;
+            }
+
             Category::query()->updateOrCreate(
                 ['slug' => $category['slug']],
                 $category
