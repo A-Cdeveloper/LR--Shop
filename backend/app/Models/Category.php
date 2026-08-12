@@ -8,8 +8,17 @@ class Category extends Model
 {
     protected $fillable = ['name', 'slug', 'description'];
 
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+
     public function products()
     {
         return $this->hasMany(Product::class);
     }
+
+
 }
