@@ -40,7 +40,7 @@ class Product extends Model
 
 
 /**
- * Scope a query to only include products by category.
+ * Eager load category relation.
  */
 public function scopeWithCategory(Builder $query): Builder
 {
@@ -48,15 +48,32 @@ public function scopeWithCategory(Builder $query): Builder
 }
 
 /**
- * Scope a query to only include products by category slug.
+ * Filter products by category slug.
  */
-public function scopeWithCategorySlug(Builder $query, string $category): Builder
+public function scopeWithCategorySlug(Builder $query, ?string $category): Builder
 {
+    if (blank($category)) {
+        return $query;
+    }
+
     return $query->whereHas('category', function (Builder $q) use ($category) {
         $q->where('slug', $category);
     });
 }
 
+/**
+ * Search products by name or description.
+ */
+public function scopeSearch(Builder $query, ?string $term): Builder
+{
+    if (blank($term)) {
+        return $query;
+    }
 
+    return $query->where(function (Builder $q) use ($term) {
+        $q->where('name', 'like', "%{$term}%")
+            ->orWhere('description', 'like', "%{$term}%");
+    });
+}
 
 }
