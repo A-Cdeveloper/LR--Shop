@@ -20,6 +20,7 @@ class CategoryResource extends JsonResource
             'slug' => $this->slug,
             'description' => $this->description,
             'image' => $this->image ? url('storage/' . $this->image) : null,
+            'products_count' => $this->whenCounted('products'),
         ];
     }
 }
