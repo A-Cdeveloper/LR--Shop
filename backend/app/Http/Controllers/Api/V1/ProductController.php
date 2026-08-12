@@ -14,9 +14,16 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = Product::active()->with('category')->paginate(10);
+       
+        $categoryQuery = request()->query('category');
 
-        return ProductResource::collection($products);
+        $query = Product::active()->withCategory();
+
+        if ($categoryQuery) {
+            $query->withCategorySlug($categoryQuery);
+        }
+
+        return ProductResource::collection($query->paginate(10));
     }
 
     /**
