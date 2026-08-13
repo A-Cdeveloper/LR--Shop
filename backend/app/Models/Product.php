@@ -76,4 +76,20 @@ public function scopeSearch(Builder $query, ?string $term): Builder
     });
 }
 
+/**
+ * Sort products by field and direction.
+ */
+
+public function scopeSortBy(Builder $query, ?string $field, ?string $direction): Builder
+{
+    $allowedFields = ['name', 'price', 'created_at'];
+    $direction = strtolower($direction ?? 'asc') === 'desc' ? 'desc' : 'asc';
+
+    if (! in_array($field, $allowedFields, true)) {
+        return $query->orderBy('name'); // default
+    }
+
+    return $query->orderBy($field, $direction);
+}
+
 }

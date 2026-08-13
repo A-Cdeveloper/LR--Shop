@@ -18,11 +18,14 @@ class ProductController extends Controller
         $searchQuery = request()->query('search');
         $perPage = (int) request()->query('per_page', 10);
         $perPage = max(1, min($perPage, 50));
+        $sortField = request()->query('sort');
+        $sortDirection = request()->query('order');
 
         $products = Product::active()
             ->withCategory()
             ->search($searchQuery)
             ->withCategorySlug($categoryQuery)
+            ->sortBy($sortField, $sortDirection)
             ->paginate($perPage);
 
         return ProductResource::collection($products);
