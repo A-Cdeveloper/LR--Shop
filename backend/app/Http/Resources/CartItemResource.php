@@ -27,7 +27,7 @@ class CartItemResource extends JsonResource
                     
              ];
             }),
-            'subtotal' => $this->quantity * $this->product->price,
+            'subtotal' => round($this->quantity * $this->product->price, 2),
         ];
     }
 }
