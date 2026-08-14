@@ -7,6 +7,8 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -29,4 +31,11 @@ class AuthController extends Controller
         $user->token = $user->createToken('auth_token')->plainTextToken;
         return new UserResource($user);
     }
-}
+
+    public function logout(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $user->currentAccessToken()->delete();
+        return response()->json(['message' => 'Logged out'], 200);
+    }
+}   
