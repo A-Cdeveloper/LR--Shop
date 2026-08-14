@@ -7,6 +7,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\ForgotPasswordController;
+use App\Http\Controllers\Api\V1\ResetPasswordController;
+use App\Http\Controllers\Api\V1\ChangePasswordController;
+
+
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -28,4 +33,7 @@ Route::prefix('v1')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
     Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum')->name('logout');
+    Route::post('forgot-password', [ForgotPasswordController::class, 'store'])->name('forgot-password');
+    Route::post('reset-password', [ResetPasswordController::class, 'update'])->name('reset-password');
+    Route::post('change-password', [ChangePasswordController::class, 'update'])->middleware('auth:sanctum')->name('change-password');
 });
