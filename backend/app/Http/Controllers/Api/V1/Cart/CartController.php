@@ -15,17 +15,29 @@ class CartController extends Controller
      * Display the specified resource.
      */
     public function show(Request $request)
+    
     {
-        $token = $request->header('X-Cart-Token');
-    
-        $cart = $token
-            ? Cart::query()->where('token', $token)->first()
-            : null;
-    
-        if (! $cart) {
-            $cart = Cart::query()->create([
-                'token' => (string) \Illuminate\Support\Str::uuid(),
-            ]);
+
+        $user = auth('sanctum')->user();
+
+        if ($user) {
+            $cart = Cart::firstOrCreate(
+                ['user_id' => $user->id],
+                ['token' => (string) \Illuminate\Support\Str::uuid()]
+            );
+        }
+        else {
+            $token = $request->header('X-Cart-Token');
+        
+            $cart = $token
+                ? Cart::where('token', $token)->first()
+                : null;
+        
+            if (! $cart) {
+                $cart = Cart::create([
+                    'token' => (string) \Illuminate\Support\Str::uuid(),
+                ]);
+            }
         }
     
         $cart->load('items.product');

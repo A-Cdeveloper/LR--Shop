@@ -79,13 +79,22 @@ class CartItemController extends Controller
 
     private function resolveCart(Request $request): ?Cart
     {
-        $token = $request->header('X-Cart-Token');
+        $user = auth('sanctum')->user();
 
+        if ($user) {
+            return Cart::firstOrCreate(
+                ['user_id' => $user->id],
+                ['token' => (string) \Illuminate\Support\Str::uuid()]
+            );
+        }
+        
+        $token = $request->header('X-Cart-Token');
+        
         if (! $token) {
             return null;
         }
-
-        return Cart::query()->where('token', $token)->first();
+        
+        return Cart::where('token', $token)->first();
     }
 
     /**
