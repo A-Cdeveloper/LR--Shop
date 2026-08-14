@@ -23,6 +23,7 @@ Implemented:
 - Products API (read-only)
 - Guest cart API (`X-Cart-Token`)
 - Auth API (register, login, logout, forgot/reset/change password)
+- User carts (`user_id`) and guest cart merge on login/register
 - Category, product, and cart seed data
 - API Resources for JSON responses
 - Route model binding by slug
@@ -31,7 +32,6 @@ Implemented:
 
 Planned:
 
-- Cart merge for logged-in users
 - Orders
 - Admin
 
@@ -151,7 +151,14 @@ Always returns the same message (does not reveal if the email exists). Local mai
 
 ### Cart
 
-Guest cart is identified by the `X-Cart-Token` header (UUID). The token is returned in the **response header** `X-Cart-Token` (not in the JSON body). Store it on the client and send it on every cart request.
+Cart routes are public. Who owns the cart depends on headers:
+
+| Client | How cart is resolved |
+|--------|----------------------|
+| Guest | `X-Cart-Token` header (UUID) |
+| Logged in | `Authorization: Bearer {token}` → cart with that `user_id` |
+
+The cart token is returned in the **response header** `X-Cart-Token` (not in the JSON body).
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -160,13 +167,23 @@ Guest cart is identified by the `X-Cart-Token` header (UUID). The token is retur
 | PATCH | `/cart/items/{id}` | Set item quantity |
 | DELETE | `/cart/items/{id}` | Remove item (`204 No Content`) |
 
-**Headers:**
+**Guest headers:**
 
 ```text
 X-Cart-Token: <uuid>
 Accept: application/json
 Content-Type: application/json
 ```
+
+**Logged-in headers:**
+
+```text
+Authorization: Bearer {token}
+Accept: application/json
+Content-Type: application/json
+```
+
+While logged in, `X-Cart-Token` is ignored for resolving the cart.
 
 **POST `/cart/items` body:**
 
@@ -189,13 +206,17 @@ Content-Type: application/json
 
 **Cart item fields:** `id`, `quantity`, `product` (`id`, `name`, `slug`, `price`, `image`), `subtotal`
 
-**Flow:**
+**Guest flow:**
 
-1. `GET /cart` → read `X-Cart-Token` from response headers
+1. `GET /cart` (no Bearer) → read `X-Cart-Token` from response headers
 2. `POST /cart/items` with that token
 3. `GET /cart` again to see items and total
 
-Seed cart token (optional, for testing):
+**Merge on login/register:**
+
+Send the guest `X-Cart-Token` on `POST /login` or `POST /register`. Guest items move to the user cart (same product → quantities are summed). The guest cart is deleted. After logout, the user cart stays on the account; guest starts empty (or with a new token).
+
+Seed cart token (optional, for guest testing):
 
 ```text
 00000000-0000-4000-8000-000000000001
