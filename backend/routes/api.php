@@ -1,29 +1,23 @@
 <?php
 
-use App\Http\Controllers\Api\V1\CartController;
-use App\Http\Controllers\Api\V1\CartItemController;
+use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Auth\ChangePasswordController;
+use App\Http\Controllers\Api\V1\Auth\ForgotPasswordController;
+use App\Http\Controllers\Api\V1\Auth\ResetPasswordController;
+use App\Http\Controllers\Api\V1\Cart\CartController;
+use App\Http\Controllers\Api\V1\Cart\CartItemController;
+use App\Http\Controllers\Api\V1\Products\CategoryController;
+use App\Http\Controllers\Api\V1\Products\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\V1\CategoryController;
-use App\Http\Controllers\Api\V1\ProductController;
-use App\Http\Controllers\Api\V1\AuthController;
-use App\Http\Controllers\Api\V1\ForgotPasswordController;
-use App\Http\Controllers\Api\V1\ResetPasswordController;
-use App\Http\Controllers\Api\V1\ChangePasswordController;
-
-
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-
-
-
 Route::prefix('v1')->group(function () {
     Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
     Route::apiResource('products', ProductController::class)->only(['index', 'show']);
-
 
     Route::get('cart', [CartController::class, 'show']);
     Route::post('cart/items', [CartItemController::class, 'store']);

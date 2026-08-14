@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Api\V1;
+namespace App\Http\Controllers\Api\V1\Cart;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\CartResource;
+use App\Http\Resources\Cart\CartResource;
 use App\Models\Cart;
 use Illuminate\Http\Request;
 
