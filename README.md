@@ -4,7 +4,7 @@ E-commerce platform built with Laravel and React.
 
 ## Stack
 
-- **Backend:** Laravel 12, MySQL, Sanctum (installed, not used yet)
+- **Backend:** Laravel 12, MySQL, Sanctum (Bearer tokens)
 - **Frontend:** React, Vite (planned)
 
 ## Structure
@@ -22,6 +22,7 @@ Implemented:
 - Categories API (read-only)
 - Products API (read-only)
 - Guest cart API (`X-Cart-Token`)
+- Auth API (register, login, logout, forgot/reset/change password)
 - Category, product, and cart seed data
 - API Resources for JSON responses
 - Route model binding by slug
@@ -30,7 +31,7 @@ Implemented:
 
 Planned:
 
-- Authentication
+- Cart merge for logged-in users
 - Orders
 - Admin
 
@@ -74,6 +75,78 @@ GET /api/v1/products?category=laptops
 GET /api/v1/products?search=illo&sort=price&order=desc&per_page=20
 GET /api/v1/products/macbook-pro
 GET /api/v1/categories/phones
+```
+
+### Auth
+
+Sanctum **Bearer** tokens. Register and login return the token in `data.token`. Send it on protected routes:
+
+```text
+Authorization: Bearer {token}
+Accept: application/json
+```
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/register` | no | Create account, return token |
+| POST | `/login` | no | Return token |
+| POST | `/logout` | yes | Revoke current token |
+| POST | `/forgot-password` | no | Send reset link (Mailpit locally) |
+| POST | `/reset-password` | no | Set new password using email token |
+| POST | `/change-password` | yes | Change password while logged in |
+| GET | `/api/user` | yes | Current user (Laravel default, not under `/v1`) |
+
+**Register body:**
+
+```json
+{
+  "name": "Ana",
+  "email": "ana@example.com",
+  "password": "Secret1!",
+  "password_confirmation": "Secret1!"
+}
+```
+
+Password must be at least 8 characters, with mixed case, a number, and a symbol.
+
+**Login body:**
+
+```json
+{
+  "email": "ana@example.com",
+  "password": "Secret1!"
+}
+```
+
+**Forgot password body:**
+
+```json
+{
+  "email": "ana@example.com"
+}
+```
+
+Always returns the same message (does not reveal if the email exists). Local mail: Mailpit at `http://127.0.0.1:8025` (`MAIL_MAILER=smtp`, `MAIL_HOST=127.0.0.1`, `MAIL_PORT=1025`). Reset link uses `FRONTEND_URL` (default `http://localhost:5173`).
+
+**Reset password body** (token and email from the mail link):
+
+```json
+{
+  "email": "ana@example.com",
+  "token": "<from mail>",
+  "password": "NovaPass1!",
+  "password_confirmation": "NovaPass1!"
+}
+```
+
+**Change password body:**
+
+```json
+{
+  "current_password": "Secret1!",
+  "new_password": "NovaPass1!",
+  "new_password_confirmation": "NovaPass1!"
+}
 ```
 
 ### Cart
