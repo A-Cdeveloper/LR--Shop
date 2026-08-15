@@ -24,6 +24,7 @@ Implemented:
 - Guest cart API (`X-Cart-Token`)
 - Auth API (register, login, logout, forgot/reset/change password)
 - User carts (`user_id`) and guest cart merge on login/register
+- Orders API (checkout, list, show — auth required)
 - Category, product, and cart seed data
 - API Resources for JSON responses
 - Route model binding by slug
@@ -32,7 +33,6 @@ Implemented:
 
 Planned:
 
-- Orders
 - Admin
 
 ## API
@@ -41,31 +41,31 @@ Base URL: `http://localhost:8000/api/v1`
 
 ### Categories
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/categories` | List all categories |
-| GET | `/categories/{slug}` | Single category |
+| Method | Endpoint             | Description         |
+| ------ | -------------------- | ------------------- |
+| GET    | `/categories`        | List all categories |
+| GET    | `/categories/{slug}` | Single category     |
 
 **Category fields:** `id`, `name`, `slug`, `description`, `image`, `products_count`
 
 ### Products
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/products` | List active products (paginated) |
-| GET | `/products/{slug}` | Single product |
+| Method | Endpoint           | Description                      |
+| ------ | ------------------ | -------------------------------- |
+| GET    | `/products`        | List active products (paginated) |
+| GET    | `/products/{slug}` | Single product                   |
 
 **Product fields:** `id`, `name`, `slug`, `description`, `price`, `stock`, `image`, `is_active`, `created_at`, `updated_at`, `category`
 
 **Query parameters (index only):**
 
-| Param | Example | Description |
-|-------|---------|-------------|
-| `category` | `laptops` | Filter by category slug |
-| `search` | `phone` | Search in name and description |
-| `sort` | `price` | Sort field: `name`, `price`, `created_at` (default: `name`) |
-| `order` | `desc` | Sort direction: `asc` or `desc` (default: `asc`) |
-| `per_page` | `20` | Items per page, 1–50 (default: `10`) |
+| Param      | Example   | Description                                                 |
+| ---------- | --------- | ----------------------------------------------------------- |
+| `category` | `laptops` | Filter by category slug                                     |
+| `search`   | `phone`   | Search in name and description                              |
+| `sort`     | `price`   | Sort field: `name`, `price`, `created_at` (default: `name`) |
+| `order`    | `desc`    | Sort direction: `asc` or `desc` (default: `asc`)            |
+| `per_page` | `20`      | Items per page, 1–50 (default: `10`)                        |
 
 **Examples:**
 
@@ -86,15 +86,15 @@ Authorization: Bearer {token}
 Accept: application/json
 ```
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/register` | no | Create account, return token |
-| POST | `/login` | no | Return token |
-| POST | `/logout` | yes | Revoke current token |
-| POST | `/forgot-password` | no | Send reset link (Mailpit locally) |
-| POST | `/reset-password` | no | Set new password using email token |
-| POST | `/change-password` | yes | Change password while logged in |
-| GET | `/api/user` | yes | Current user (Laravel default, not under `/v1`) |
+| Method | Endpoint           | Auth | Description                                     |
+| ------ | ------------------ | ---- | ----------------------------------------------- |
+| POST   | `/register`        | no   | Create account, return token                    |
+| POST   | `/login`           | no   | Return token                                    |
+| POST   | `/logout`          | yes  | Revoke current token                            |
+| POST   | `/forgot-password` | no   | Send reset link (Mailpit locally)               |
+| POST   | `/reset-password`  | no   | Set new password using email token              |
+| POST   | `/change-password` | yes  | Change password while logged in                 |
+| GET    | `/api/user`        | yes  | Current user (Laravel default, not under `/v1`) |
 
 **Register body:**
 
@@ -153,19 +153,19 @@ Always returns the same message (does not reveal if the email exists). Local mai
 
 Cart routes are public. Who owns the cart depends on headers:
 
-| Client | How cart is resolved |
-|--------|----------------------|
-| Guest | `X-Cart-Token` header (UUID) |
+| Client    | How cart is resolved                                       |
+| --------- | ---------------------------------------------------------- |
+| Guest     | `X-Cart-Token` header (UUID)                               |
 | Logged in | `Authorization: Bearer {token}` → cart with that `user_id` |
 
 The cart token is returned in the **response header** `X-Cart-Token` (not in the JSON body).
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/cart` | Get current cart (creates one if missing) |
-| POST | `/cart/items` | Add product (or increase quantity if already in cart) |
-| PATCH | `/cart/items/{id}` | Set item quantity |
-| DELETE | `/cart/items/{id}` | Remove item (`204 No Content`) |
+| Method | Endpoint           | Description                                           |
+| ------ | ------------------ | ----------------------------------------------------- |
+| GET    | `/cart`            | Get current cart (creates one if missing)             |
+| POST   | `/cart/items`      | Add product (or increase quantity if already in cart) |
+| PATCH  | `/cart/items/{id}` | Set item quantity                                     |
+| DELETE | `/cart/items/{id}` | Remove item (`204 No Content`)                        |
 
 **Guest headers:**
 
@@ -222,6 +222,36 @@ Seed cart token (optional, for guest testing):
 00000000-0000-4000-8000-000000000001
 ```
 
+### Orders
+
+Logged-in users only (`auth:sanctum`). Guest checkout is **not** supported — login/register first (cart merge applies). Checkout builds the order from the **user cart**, then clears cart items.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/orders` | Place order from current cart |
+| GET | `/orders` | List my orders (summary) |
+| GET | `/orders/{id}` | Order detail (own orders only) |
+
+**POST `/orders` body:**
+
+```json
+{
+  "customer_name": "Ana Anic",
+  "customer_phone": "+381641234567",
+  "shipping_address": "Bulevar 1",
+  "city": "Beograd",
+  "state": "Srbija",
+  "zip": "11000",
+  "country": "RS"
+}
+```
+
+**List (`GET /orders`) fields:** `id`, `status`, `total`, `items_count`, `created_at`
+
+**Detail / create response fields:** `id`, `status`, `total`, address fields, `items` (`product_id`, `product_name`, `price`, `quantity`, `subtotal`), timestamps
+
+Successful create also returns `"message": "Order placed successfully."` and status **201**. Empty cart → **422**.
+
 ### Errors
 
 API routes return JSON. Missing resources respond with:
@@ -267,6 +297,36 @@ cd frontend
 npm install
 npm run dev
 ```
+
+## Later polish
+
+Things we skipped on purpose (MVP). Do these before production / when polishing:
+
+### Auth
+
+- [ ] Stronger phone validation (regex or `propaganistas/laravel-phone`)
+- [ ] Email verification (`MustVerifyEmail`)
+- [ ] Same Sanctum token expiry on login and register
+- [ ] Profile update (`name`, `email`)
+- [ ] Optional: revoke other tokens after change-password
+- [ ] Refresh-token style flow (only if needed; Sanctum is usually enough)
+
+### Cart / Orders
+
+- [ ] Stock check on add-to-cart and checkout
+- [ ] Payment (Stripe / etc.)
+- [ ] Order status updates (admin: `pending` → `paid` / `cancelled`)
+- [ ] Order confirmation email (Mailpit locally)
+
+### Admin / tooling
+
+- [ ] Admin role + CRUD for categories and products
+- [ ] PHPStan / Larastan (unused imports, static analysis)
+- [ ] API tests (Feature tests for auth, cart, orders)
+
+### Frontend
+
+- [ ] React storefront (Vite)
 
 ## Commit convention
 
