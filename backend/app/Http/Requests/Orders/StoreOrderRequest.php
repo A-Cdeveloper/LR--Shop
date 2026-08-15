@@ -7,17 +7,31 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreOrderRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $user = $this->user();
+
+        if (! $user) {
+            return;
+        }
+
+        $this->merge([
+            'customer_name' => $this->input('customer_name', $user->name),
+            'customer_phone' => $this->input('customer_phone', $user->phone),
+            'shipping_address' => $this->input('shipping_address', $user->shipping_address),
+            'city' => $this->input('city', $user->city),
+            'state' => $this->input('state', $user->state),
+            'zip' => $this->input('zip', $user->zip),
+            'country' => $this->input('country', $user->country),
+        ]);
+    }
+
     /**
-     * Get the validation rules that apply to the request.
-     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array

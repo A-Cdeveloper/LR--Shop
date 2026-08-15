@@ -3,13 +3,13 @@
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Auth\ChangePasswordController;
 use App\Http\Controllers\Api\V1\Auth\ForgotPasswordController;
+use App\Http\Controllers\Api\V1\Auth\ProfileController;
 use App\Http\Controllers\Api\V1\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\V1\Cart\CartController;
 use App\Http\Controllers\Api\V1\Cart\CartItemController;
 use App\Http\Controllers\Api\V1\Products\CategoryController;
 use App\Http\Controllers\Api\V1\Products\ProductController;
 use App\Http\Controllers\Api\V1\Orders\OrderController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Public
@@ -34,9 +34,8 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
 
     Route::prefix('v1')->group(function () {
 
-        Route::get('user', function (Request $request) {
-            return new \App\Http\Resources\Auth\UserResource($request->user());
-        });
+        Route::get('profile', [ProfileController::class, 'show']);
+        Route::patch('profile', [ProfileController::class, 'update']);
 
 
         Route::post('logout', [AuthController::class, 'logout'])->name('logout');

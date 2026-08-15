@@ -20,6 +20,12 @@ class UserResource extends JsonResource
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
             'token' => $this->when(isset($this->resource->token), $this->token),
             'role' => $this->role,
+            'phone' => $this->phone,
+            'shipping_address' => $this->shipping_address,
+            'city' => $this->city,
+            'state' => $this->state,
+            'zip' => $this->zip,
+            'country' => $this->country,
         ];
     }
 }
