@@ -11,10 +11,7 @@ use App\Http\Controllers\Api\V1\Products\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
-
+// Public
 Route::prefix('v1')->group(function () {
     Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
     Route::apiResource('products', ProductController::class)->only(['index', 'show']);
@@ -26,8 +23,19 @@ Route::prefix('v1')->group(function () {
 
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
-    Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum')->name('logout');
     Route::post('forgot-password', [ForgotPasswordController::class, 'store'])->name('forgot-password');
     Route::post('reset-password', [ResetPasswordController::class, 'update'])->name('reset-password');
-    Route::post('change-password', [ChangePasswordController::class, 'update'])->middleware('auth:sanctum')->name('change-password');
+});
+
+// Protected (Bearer token required)
+Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+
+    Route::prefix('v1')->group(function () {
+        Route::post('logout', [AuthController::class, 'logout'])->name('logout');
+        Route::post('change-password', [ChangePasswordController::class, 'update'])->name('change-password');
+        // Orders will go here later
+    });
 });
