@@ -24,7 +24,9 @@ Implemented:
 - Guest cart API (`X-Cart-Token`)
 - Auth API (register, login, logout, forgot/reset/change password)
 - User carts (`user_id`) and guest cart merge on login/register
-- Orders API (checkout, list, show — auth required)
+- Orders API (checkout, list, show — auth required; shipping from profile)
+- Profile API (GET/PATCH contact and shipping fields)
+- User roles (`customer` / `admin`) and admin middleware (routes next)
 - Category, product, and cart seed data
 - API Resources for JSON responses
 - Route model binding by slug
@@ -33,7 +35,7 @@ Implemented:
 
 Planned:
 
-- Admin
+- Admin API (`/admin/...`)
 
 ## API
 
@@ -94,7 +96,31 @@ Accept: application/json
 | POST   | `/forgot-password` | no   | Send reset link (Mailpit locally)               |
 | POST   | `/reset-password`  | no   | Set new password using email token              |
 | POST   | `/change-password` | yes  | Change password while logged in                 |
-| GET    | `/api/user`        | yes  | Current user (Laravel default, not under `/v1`) |
+
+### Profile
+
+Logged-in users only (`auth:sanctum`).
+
+| Method | Endpoint   | Auth | Description                                      |
+| ------ | ---------- | ---- | ------------------------------------------------ |
+| GET    | `/profile` | yes  | Current user (includes role and shipping fields) |
+| PATCH  | `/profile` | yes  | Partial update (`sometimes` fields)              |
+
+**Profile fields:** `id`, `name`, `email`, `role`, `phone`, `shipping_address`, `city`, `state`, `zip`, `country`, timestamps. `token` only on login/register.
+
+**PATCH `/profile` body** (send only what you change):
+
+```json
+{
+  "name": "Ana",
+  "phone": "+381641234567",
+  "shipping_address": "Bulevar 1",
+  "city": "Beograd",
+  "state": "Srbija",
+  "zip": "11000",
+  "country": "RS"
+}
+```
 
 **Register body:**
 
@@ -232,7 +258,9 @@ Logged-in users only (`auth:sanctum`). Guest checkout is **not** supported — l
 | GET | `/orders` | List my orders (summary) |
 | GET | `/orders/{id}` | Order detail (own orders only) |
 
-**POST `/orders` body:**
+Shipping is taken from the **user profile** when the body is empty. Body fields override profile. Incomplete profile (missing phone/address) → **422**.
+
+**POST `/orders` body** (optional if profile is complete):
 
 ```json
 {
@@ -307,7 +335,7 @@ Things we skipped on purpose (MVP). Do these before production / when polishing:
 - [ ] Stronger phone validation (regex or `propaganistas/laravel-phone`)
 - [ ] Email verification (`MustVerifyEmail`)
 - [ ] Same Sanctum token expiry on login and register
-- [ ] Profile update (`name`, `email`)
+- [ ] Account deactivate (`status` active/passive + `DELETE /profile` + block login)
 - [ ] Optional: revoke other tokens after change-password
 - [ ] Refresh-token style flow (only if needed; Sanctum is usually enough)
 
@@ -320,7 +348,7 @@ Things we skipped on purpose (MVP). Do these before production / when polishing:
 
 ### Admin / tooling
 
-- [ ] Admin role + CRUD for categories and products
+- [ ] Admin CRUD for categories, products, and orders (`/api/v1/admin/...`)
 - [ ] PHPStan / Larastan (unused imports, static analysis)
 - [ ] API tests (Feature tests for auth, cart, orders)
 
