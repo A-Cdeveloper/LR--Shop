@@ -30,11 +30,15 @@ Route::prefix('v1')->group(function () {
 
 // Protected (Bearer token required)
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
+
 
     Route::prefix('v1')->group(function () {
+
+        Route::get('user', function (Request $request) {
+            return new \App\Http\Resources\Auth\UserResource($request->user());
+        });
+
+
         Route::post('logout', [AuthController::class, 'logout'])->name('logout');
         Route::post('change-password', [ChangePasswordController::class, 'update'])->name('change-password');
         Route::post('orders', [OrderController::class, 'store']);
