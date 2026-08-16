@@ -27,7 +27,8 @@ Implemented:
 - Orders API (checkout, list, show — auth required; shipping from profile)
 - Profile API (GET/PATCH/DELETE — hard delete; admins blocked)
 - Clear cart (`DELETE /cart`)
-- User roles (`customer` / `admin`) and admin middleware (routes next)
+- User roles (`customer` / `admin`) and admin middleware
+- Admin uploads (`POST /admin/uploads`) and admin category CRUD
 - Category, product, and cart seed data
 - API Resources for JSON responses
 - Route model binding by slug
@@ -36,7 +37,7 @@ Implemented:
 
 Planned:
 
-- Admin API (`/admin/...`)
+- Admin product and order endpoints
 - Stripe test payments
 - CORS for the React frontend
 
@@ -287,6 +288,53 @@ Shipping is taken from the **user profile** when the body is empty. Body fields 
 
 Successful create also returns `"message": "Order placed successfully."` and status **201**. Empty cart → **422**.
 
+### Admin
+
+Requires `Authorization: Bearer {token}` and `role = admin` (`auth:sanctum` + `admin`). Base path: `/api/v1/admin`.
+
+#### Uploads
+
+Shared image upload for admin resources. Returns a storage path to save on category/product as `image`.
+
+| Method | Endpoint   | Description                                      |
+| ------ | ---------- | ------------------------------------------------ |
+| POST   | `/uploads` | Upload image (`201`); multipart `form-data` only |
+
+**form-data fields:**
+
+| Field      | Required | Description                                      |
+| ---------- | -------- | ------------------------------------------------ |
+| `file`     | yes      | Image (`jpeg`, `png`, `jpg`, `webp`), max 2MB    |
+| `folder`   | yes      | `categories` or `products`                       |
+| `filename` | no       | Optional basename (`phones` → `phones.jpg`); omit for random name |
+
+**Response:**
+
+```json
+{
+  "path": "categories/phones.jpg",
+  "url": "http://localhost:8000/storage/categories/phones.jpg"
+}
+```
+
+Flow: upload → copy `path` → send as `image` on create/update category (JSON). Files are not deleted from disk when a category is updated or removed.
+
+#### Categories
+
+| Method | Endpoint                    | Description                                      |
+| ------ | --------------------------- | ------------------------------------------------ |
+| GET    | `/categories`               | Paginated list (`per_page`, `sort`, `order`)     |
+| POST   | `/categories`               | Create category                                  |
+| GET    | `/categories/{slug}`        | Show category                                    |
+| PUT/PATCH | `/categories/{slug}`     | Update category (partial with `PATCH`)           |
+| DELETE | `/categories/{slug}`        | Delete if it has no products (`204`); else `422` |
+
+**Query (`GET /categories`):** `per_page` (1–50, default 10), `sort` (`name` \| `products_count`), `order` (`asc` \| `desc`).
+
+**Create/update body (JSON):** `name`, `slug` (lowercase, numbers, hyphens), `description` (nullable), `image` (nullable string path from uploads).
+
+Admin products and orders are next.
+
 ### Errors
 
 API routes return JSON. Missing resources respond with:
@@ -354,7 +402,7 @@ Things we skipped on purpose (MVP). Do these before production / when polishing:
 
 ### Admin / tooling
 
-- [ ] Admin CRUD for categories, products, and orders (`/api/v1/admin/...`)
+- [ ] Admin CRUD for products and orders (`/api/v1/admin/...`)
 - [ ] PHPStan / Larastan (unused imports, static analysis)
 - [ ] API tests (Feature tests for auth, cart, orders)
 
