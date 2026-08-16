@@ -18,6 +18,7 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('products', ProductController::class)->only(['index', 'show']);
 
     Route::get('cart', [CartController::class, 'show']);
+    Route::delete('cart', [CartController::class, 'destroy']);
     Route::post('cart/items', [CartItemController::class, 'store']);
     Route::patch('cart/items/{cartItem}', [CartItemController::class, 'update']);
     Route::delete('cart/items/{cartItem}', [CartItemController::class, 'destroy']);
@@ -34,12 +35,16 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
 
     Route::prefix('v1')->group(function () {
 
+        // Profile
         Route::get('profile', [ProfileController::class, 'show']);
         Route::patch('profile', [ProfileController::class, 'update']);
 
-
+        // Auth
         Route::post('logout', [AuthController::class, 'logout'])->name('logout');
         Route::post('change-password', [ChangePasswordController::class, 'update'])->name('change-password');
+
+
+        // Orders
         Route::post('orders', [OrderController::class, 'store']);
         Route::get('orders', [OrderController::class, 'index']);
         Route::get('orders/{order}', [OrderController::class, 'show']);
