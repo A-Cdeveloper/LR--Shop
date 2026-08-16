@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\Admin\AdminCategoryController;
 use App\Http\Controllers\Api\V1\Admin\AdminProductController;
 use App\Http\Controllers\Api\V1\Admin\AdminOrderController;
+use App\Http\Controllers\Api\V1\Admin\AdminUploadController;
 
 // Public
 Route::prefix('v1')->group(function () {
@@ -61,6 +62,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
 Route::middleware(['auth:sanctum', 'admin', 'throttle:api'])
     ->prefix('v1/admin')
     ->group(function () {
+        Route::post('uploads', [AdminUploadController::class, 'store']);
         Route::apiResource('categories', AdminCategoryController::class);
         Route::apiResource('products', AdminProductController::class);
         Route::apiResource('orders', AdminOrderController::class)->only(['index', 'show', 'update']);

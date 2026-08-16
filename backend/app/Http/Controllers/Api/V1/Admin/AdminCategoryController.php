@@ -8,13 +8,11 @@ use App\Http\Requests\Admin\UpdateCategoryRequest;
 use App\Http\Resources\Products\CategoryResource;
 use App\Models\Category;
 
-
 class AdminCategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-
     public function index()
     {
         $perPage = (int) request()->query('per_page', 10);
@@ -35,8 +33,8 @@ class AdminCategoryController extends Controller
      */
     public function store(StoreCategoryRequest $request)
     {
-        $validated = $request->validated();
-        $category = Category::create($validated);
+        $category = Category::create($request->validated());
+
         return (new CategoryResource($category->loadCount('products')))
             ->additional(['message' => 'Category created successfully.'])
             ->response()
@@ -56,8 +54,8 @@ class AdminCategoryController extends Controller
      */
     public function update(UpdateCategoryRequest $request, Category $category)
     {
-        $validated = $request->validated();
-        $category->update($validated);
+        $category->update($request->validated());
+
         return (new CategoryResource($category->fresh()->loadCount('products')))
             ->additional(['message' => 'Category updated successfully.']);
     }
