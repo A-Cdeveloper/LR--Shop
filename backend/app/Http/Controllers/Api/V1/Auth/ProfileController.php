@@ -22,4 +22,19 @@ class ProfileController extends Controller
         return (new UserResource($user->fresh()))
             ->additional(['message' => 'Profile updated successfully.']);
     }
+
+    public function destroy(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->isAdmin()) {
+            return response()->json(['message' => 'Admin account cannot be deleted.'], 403);
+        }
+
+        $user->cart()?->delete(); // cart_items cascade sa cart-om
+        $user->tokens()->delete();
+        $user->delete(); // orders cascade
+
+        return response()->noContent();
+    }
 }

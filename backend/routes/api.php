@@ -38,6 +38,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         // Profile
         Route::get('profile', [ProfileController::class, 'show']);
         Route::patch('profile', [ProfileController::class, 'update']);
+        Route::delete('profile', [ProfileController::class, 'destroy']);
 
         // Auth
         Route::post('logout', [AuthController::class, 'logout'])->name('logout');
