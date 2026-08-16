@@ -25,7 +25,8 @@ Implemented:
 - Auth API (register, login, logout, forgot/reset/change password)
 - User carts (`user_id`) and guest cart merge on login/register
 - Orders API (checkout, list, show — auth required; shipping from profile)
-- Profile API (GET/PATCH contact and shipping fields)
+- Profile API (GET/PATCH/DELETE — hard delete; admins blocked)
+- Clear cart (`DELETE /cart`)
 - User roles (`customer` / `admin`) and admin middleware (routes next)
 - Category, product, and cart seed data
 - API Resources for JSON responses
@@ -36,6 +37,8 @@ Implemented:
 Planned:
 
 - Admin API (`/admin/...`)
+- Stripe test payments
+- CORS for the React frontend
 
 ## API
 
@@ -105,6 +108,9 @@ Logged-in users only (`auth:sanctum`).
 | ------ | ---------- | ---- | ------------------------------------------------ |
 | GET    | `/profile` | yes  | Current user (includes role and shipping fields) |
 | PATCH  | `/profile` | yes  | Partial update (`sometimes` fields)              |
+| DELETE | `/profile` | yes  | Hard delete account (`204`); admin → `403`       |
+
+**DELETE `/profile`:** removes the user, Sanctum tokens, cart, and orders (DB cascade). Admin accounts cannot be deleted this way.
 
 **Profile fields:** `id`, `name`, `email`, `role`, `phone`, `shipping_address`, `city`, `state`, `zip`, `country`, timestamps. `token` only on login/register.
 
@@ -189,6 +195,7 @@ The cart token is returned in the **response header** `X-Cart-Token` (not in the
 | Method | Endpoint           | Description                                           |
 | ------ | ------------------ | ----------------------------------------------------- |
 | GET    | `/cart`            | Get current cart (creates one if missing)             |
+| DELETE | `/cart`            | Clear all items (`204`); cart row stays               |
 | POST   | `/cart/items`      | Add product (or increase quantity if already in cart) |
 | PATCH  | `/cart/items/{id}` | Set item quantity                                     |
 | DELETE | `/cart/items/{id}` | Remove item (`204 No Content`)                        |
@@ -335,7 +342,6 @@ Things we skipped on purpose (MVP). Do these before production / when polishing:
 - [ ] Stronger phone validation (regex or `propaganistas/laravel-phone`)
 - [ ] Email verification (`MustVerifyEmail`)
 - [ ] Same Sanctum token expiry on login and register
-- [ ] Account deactivate (`status` active/passive + `DELETE /profile` + block login)
 - [ ] Optional: revoke other tokens after change-password
 - [ ] Refresh-token style flow (only if needed; Sanctum is usually enough)
 
