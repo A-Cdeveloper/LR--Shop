@@ -22,12 +22,14 @@ class AdminProductController extends Controller
         $perPage = max(1, min($perPage, 50));
         $sortField = request()->query('sort');
         $sortDirection = request()->query('order');
+        $isActive = request()->query('active');
 
         $products = Product::query()
             ->withCategory()
             ->search($searchQuery)
             ->withCategorySlug($categoryQuery)
             ->sortBy($sortField, $sortDirection)
+            ->filterActive($isActive)
             ->paginate($perPage);
 
         return ProductResource::collection($products);
