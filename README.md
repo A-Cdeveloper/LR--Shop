@@ -29,6 +29,7 @@ Implemented:
 - Clear cart (`DELETE /cart`)
 - User roles (`customer` / `admin`) and admin middleware
 - Admin uploads, category CRUD, product CRUD, and order status management
+- Product stock: cart cannot exceed stock; checkout decrements; cancel/fail/refund restores
 - Category, product, and cart seed data
 - API Resources for JSON responses
 - Route model binding by slug
@@ -235,6 +236,8 @@ While logged in, `X-Cart-Token` is ignored for resolving the cart.
 }
 ```
 
+POST and PATCH return **422** (`Not enough stock.`) if the quantity is greater than the product's `stock`. For POST, that includes quantity already in the cart.
+
 **Cart response fields:** `id`, `items`, `total`
 
 **Cart item fields:** `id`, `quantity`, `product` (`id`, `name`, `slug`, `price`, `image`), `subtotal`
@@ -285,7 +288,7 @@ Shipping is taken from the **user profile** when the body is empty. Body fields 
 
 **Detail / create response fields:** `id`, `status`, `total`, address fields, `items` (`product_id`, `product_name`, `price`, `quantity`, `subtotal`), timestamps
 
-Successful create also returns `"message": "Order placed successfully."` and status **201**. Empty cart → **422**.
+Successful create also returns `"message": "Order placed successfully."` and status **201**. Empty cart → **422**. Not enough stock → **422**; product `stock` is decremented inside a transaction (`lockForUpdate`).
 
 ### Admin
 
@@ -362,6 +365,8 @@ Admins see **all** orders. Checkout stays on the customer API (`POST /orders`). 
 
 **Statuses:** `pending`, `processing`, `completed`, `cancelled`, `failed`, `refunded`. New checkouts start as `pending`.
 
+Moving an order from a held status (`pending`, `processing`, `completed`) to `cancelled`, `failed`, or `refunded` **restores** product stock. The same status again does not double-restore.
+
 **PATCH body:**
 
 ```json
@@ -432,7 +437,6 @@ Things we skipped on purpose (MVP). Do these before production / when polishing:
 
 ### Cart / Orders
 
-- [ ] Stock check on add-to-cart and checkout
 - [ ] Payment (Stripe / etc.)
 - [ ] Order confirmation email (Mailpit locally)
 
