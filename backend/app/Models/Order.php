@@ -7,13 +7,21 @@ use Illuminate\Database\Eloquent\Builder;
 
 class Order extends Model
 {
-    public const STATUSES = [
+    public const STOCK_HELD_STATUSES = [
         'pending',
         'processing',
         'completed',
+    ];
+
+    public const STOCK_RELEASED_STATUSES = [
         'cancelled',
         'failed',
         'refunded',
+    ];
+
+    public const STATUSES = [
+        ...self::STOCK_HELD_STATUSES,
+        ...self::STOCK_RELEASED_STATUSES,
     ];
 
     protected $fillable = [

@@ -24,19 +24,22 @@ class CartItemController extends Controller
         }
 
         $productId = $request->validated()['product_id'];
+        $quantity = $request->validated()['quantity'];
+        $product = \App\Models\Product::findOrFail($productId);
 
-        $item = $cart->items()
-            ->where('product_id', $productId)
-            ->first();
+        $item = $cart->items()->where('product_id', $productId)->first();
+        $alreadyInCart = $item?->quantity ?? 0;
+
+        if ($alreadyInCart + $quantity > $product->stock) {
+            return response()->json(['message' => 'Not enough stock.'], 422);
+        }
 
         if ($item) {
-            $item->update([
-                'quantity' => $item->quantity + $request->validated()['quantity'],
-            ]);
+            $item->update(['quantity' => $alreadyInCart + $quantity]);
         } else {
             $item = $cart->items()->create([
                 'product_id' => $productId,
-                'quantity' => $request->validated()['quantity'],
+                'quantity' => $quantity,
             ]);
         }
 
@@ -53,8 +56,15 @@ class CartItemController extends Controller
         $cart = $this->resolveCart($request);
         $this->ensureCartItemBelongsToCart($cartItem, $cart);
 
-        $cartItem->update($request->validated());
         $cartItem->load('product');
+
+        $quantity = (int) $request->validated('quantity');
+
+        if ($quantity > $cartItem->product->stock) {
+            abort(422, 'Not enough stock for this product.');
+        }
+
+        $cartItem->update(['quantity' => $quantity]);
 
         return new CartItemResource($cartItem);
     }
@@ -87,13 +97,13 @@ class CartItemController extends Controller
                 ['token' => (string) \Illuminate\Support\Str::uuid()]
             );
         }
-        
+
         $token = $request->header('X-Cart-Token');
-        
+
         if (! $token) {
             return null;
         }
-        
+
         return Cart::where('token', $token)->first();
     }
 

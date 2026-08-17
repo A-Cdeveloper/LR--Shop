@@ -6,7 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateOrderStatusRequest;
 use App\Http\Resources\Orders\OrderResource;
 use App\Models\Order;
-use Illuminate\Http\Request;
+use App\Models\Product;
+use Illuminate\Support\Facades\DB;
 
 class AdminOrderController extends Controller
 {
@@ -54,16 +55,40 @@ class AdminOrderController extends Controller
      */
     public function update(UpdateOrderStatusRequest $request, Order $order)
     {
-        $order->update($request->validated());
-        return (new OrderResource($order->load('items')))
+        $newStatus = $request->validated('status');
+        $oldStatus = $order->status;
+
+        if ($newStatus === $oldStatus) {
+            return (new OrderResource($order->load('items')))
+                ->additional(['message' => 'Order status updated successfully.']);
+        }
+
+        DB::transaction(function () use ($order, $newStatus, $oldStatus) {
+            if ($this->shouldRestoreStock($oldStatus, $newStatus)) {
+                $order->load('items');
+
+                foreach ($order->items as $item) {
+                    $product = Product::query()
+                        ->whereKey($item->product_id)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($product) {
+                        $product->increment('stock', $item->quantity);
+                    }
+                }
+            }
+
+            $order->update(['status' => $newStatus]);
+        });
+
+        return (new OrderResource($order->fresh()->load('items')))
             ->additional(['message' => 'Order status updated successfully.']);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    // public function destroy(string $id)
-    // {
-    //     //
-    // }
+    private function shouldRestoreStock(string $from, string $to): bool
+    {
+        return in_array($from, Order::STOCK_HELD_STATUSES, true)
+            && in_array($to, Order::STOCK_RELEASED_STATUSES, true);
+    }
 }

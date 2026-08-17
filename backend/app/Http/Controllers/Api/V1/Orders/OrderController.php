@@ -50,6 +50,18 @@ class OrderController extends Controller
         }
 
         $order = DB::transaction(function () use ($orderData, $user, $cart) {
+
+
+            foreach ($cart->items as $item) {
+                $product = $item->product()->lockForUpdate()->first();
+                if ($item->quantity > $product->stock) {
+                    abort(response()->json([
+                        'message' => 'Not enough stock.',
+                    ], 422));
+                }
+                $product->decrement('stock', $item->quantity);
+            }
+
             $total = $cart->items->sum(function ($item) {
                 return $item->quantity * $item->product->price;
             });
