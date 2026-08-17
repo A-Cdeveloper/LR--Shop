@@ -28,7 +28,7 @@ Implemented:
 - Profile API (GET/PATCH/DELETE — hard delete; admins blocked)
 - Clear cart (`DELETE /cart`)
 - User roles (`customer` / `admin`) and admin middleware
-- Admin uploads (`POST /admin/uploads`), admin category CRUD, and admin product CRUD
+- Admin uploads, category CRUD, product CRUD, and order status management
 - Category, product, and cart seed data
 - API Resources for JSON responses
 - Route model binding by slug
@@ -37,7 +37,6 @@ Implemented:
 
 Planned:
 
-- Admin order endpoints
 - Stripe test payments
 - CORS for the React frontend
 
@@ -349,7 +348,29 @@ Flow: upload → copy `path` → send as `image` on create/update category (JSON
 
 Deleting a product removes it from carts; order items keep `product_name` and set `product_id` to null. Image files stay on disk.
 
-Admin orders are next.
+#### Orders
+
+Admins see **all** orders. Checkout stays on the customer API (`POST /orders`). Orders are not hard-deleted; change `status` instead.
+
+| Method | Endpoint | Description |
+| ------ | -------- | ----------- |
+| GET | `/orders` | Paginated list of all orders |
+| GET | `/orders/{id}` | Order detail (any order) |
+| PUT/PATCH | `/orders/{id}` | Update `status` only |
+
+**Query (`GET /orders`):** `per_page` (1–50, default 10), `status` (one of the values below), `sort` (`total` \| `created_at`), `order` (`asc` \| `desc`). Invalid `status` → **422**.
+
+**Statuses:** `pending`, `processing`, `completed`, `cancelled`, `failed`, `refunded`. New checkouts start as `pending`.
+
+**PATCH body:**
+
+```json
+{
+  "status": "processing"
+}
+```
+
+Customer → **403**.
 
 ### Errors
 
@@ -413,12 +434,10 @@ Things we skipped on purpose (MVP). Do these before production / when polishing:
 
 - [ ] Stock check on add-to-cart and checkout
 - [ ] Payment (Stripe / etc.)
-- [ ] Order status updates (admin: `pending` → `paid` / `cancelled`)
 - [ ] Order confirmation email (Mailpit locally)
 
 ### Admin / tooling
 
-- [ ] Admin order list and status updates (`/api/v1/admin/orders`)
 - [ ] PHPStan / Larastan (unused imports, static analysis)
 - [ ] API tests (Feature tests for auth, cart, orders)
 
