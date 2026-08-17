@@ -28,7 +28,7 @@ Implemented:
 - Profile API (GET/PATCH/DELETE — hard delete; admins blocked)
 - Clear cart (`DELETE /cart`)
 - User roles (`customer` / `admin`) and admin middleware
-- Admin uploads (`POST /admin/uploads`) and admin category CRUD
+- Admin uploads (`POST /admin/uploads`), admin category CRUD, and admin product CRUD
 - Category, product, and cart seed data
 - API Resources for JSON responses
 - Route model binding by slug
@@ -37,7 +37,7 @@ Implemented:
 
 Planned:
 
-- Admin product and order endpoints
+- Admin order endpoints
 - Stripe test payments
 - CORS for the React frontend
 
@@ -333,7 +333,23 @@ Flow: upload → copy `path` → send as `image` on create/update category (JSON
 
 **Create/update body (JSON):** `name`, `slug` (lowercase, numbers, hyphens), `description` (nullable), `image` (nullable string path from uploads).
 
-Admin products and orders are next.
+#### Products
+
+| Method | Endpoint                 | Description                                      |
+| ------ | ------------------------ | ------------------------------------------------ |
+| GET    | `/products`              | Paginated list (includes inactive products)      |
+| POST   | `/products`              | Create product                                   |
+| GET    | `/products/{slug}`       | Show product                                     |
+| PUT/PATCH | `/products/{slug}`    | Update product (partial with `PATCH`)            |
+| DELETE | `/products/{slug}`       | Delete product (`204`)                           |
+
+**Query (`GET /products`):** same as public shop — `category`, `search`, `per_page`, `sort` (`name` \| `price` \| `created_at`), `order`.
+
+**Create/update body (JSON):** `category_id`, `name`, `slug`, `description` (nullable), `price`, `stock`, `image` (nullable path from uploads with `folder=products`), `is_active` (optional boolean).
+
+Deleting a product removes it from carts; order items keep `product_name` and set `product_id` to null. Image files stay on disk.
+
+Admin orders are next.
 
 ### Errors
 
@@ -402,7 +418,7 @@ Things we skipped on purpose (MVP). Do these before production / when polishing:
 
 ### Admin / tooling
 
-- [ ] Admin CRUD for products and orders (`/api/v1/admin/...`)
+- [ ] Admin order list and status updates (`/api/v1/admin/orders`)
 - [ ] PHPStan / Larastan (unused imports, static analysis)
 - [ ] API tests (Feature tests for auth, cart, orders)
 
