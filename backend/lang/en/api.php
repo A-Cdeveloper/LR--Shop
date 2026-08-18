@@ -23,6 +23,7 @@ return [
         'forgot_password_sent' => 'If that email exists, we sent a reset link.',
         'reset_token_invalid' => 'This password reset token is invalid.',
         'password_reset' => 'Password reset successfully',
+        'verification_resent' => 'If that email exists and is unverified, we sent a verification link.',
     ],
 
     'cart' => [

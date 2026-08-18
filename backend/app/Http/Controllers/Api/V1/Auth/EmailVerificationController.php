@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\V1\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\ResendVerificationRequest;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 
@@ -23,6 +25,20 @@ class EmailVerificationController extends Controller
 
         return response()->json([
             'message' => __('api.auth.email_verified'),
+        ]);
+    }
+
+
+    public function resend(ResendVerificationRequest $request)
+    {
+        $user = User::where('email', $request->validated('email'))->first();
+
+        if ($user && ! $user->hasVerifiedEmail()) {
+            $user->sendEmailVerificationNotification();
+        }
+
+        return response()->json([
+            'message' => __('api.auth.verification_resent'),
         ]);
     }
 }
