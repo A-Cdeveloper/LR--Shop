@@ -29,7 +29,8 @@ Implemented:
 - E.164 phone validation on profile and checkout
 - Clear cart (`DELETE /cart`)
 - User roles (`customer` / `admin`) and admin middleware
-- Admin uploads, category CRUD, product CRUD, and order status management
+- User `is_active` flag; inactive users cannot log in
+- Admin uploads, category CRUD, product CRUD, order status, and user management
 - Product stock: cart cannot exceed stock; checkout decrements; cancel/fail/refund restores
 - Category, product, and cart seed data
 - API Resources for JSON responses
@@ -97,13 +98,13 @@ Accept: application/json
 | ------ | --------------------------- | ---- | -------------------------------------------------------- |
 | POST   | `/register`                 | no   | Create account, send verification email (**no token**)   |
 | GET    | `/email/verify/{id}/{hash}` | no   | Confirm email via signed link from mail (no token)       |
-| POST   | `/login`                    | no   | Return token (unverified → **403**)                      |
+| POST   | `/login`                    | no   | Return token (unverified or inactive → **403**)          |
 | POST   | `/logout`                   | yes  | Revoke current token                                     |
 | POST   | `/forgot-password`          | no   | Send reset link (Mailpit locally)                        |
 | POST   | `/reset-password`           | no   | Set new password using email token                       |
 | POST   | `/change-password`          | yes  | Change password while logged in                          |
 
-**Email verification:** `POST /register` creates the user with `email_verified_at = null` and sends a signed link (Mailpit locally). Open the full URL from the mail (browser or GET in Postman). Success: `"Email verified."` — still **no** token. Then `POST /login`. Unverified login → **403** `Please verify your email first.` Invalid credentials still **401**. The verify URL includes `expires` and `signature`; do not build it by hand.
+**Email verification:** `POST /register` creates the user with `email_verified_at = null` and sends a signed link (Mailpit locally). Open the full URL from the mail (browser or GET in Postman). Success: `"Email verified."` — still **no** token. Then `POST /login`. Unverified login → **403** `Please verify your email first.` Inactive account (`is_active = false`) → **403** `Your account is not active. Please contact support.` Invalid credentials still **401**. The verify URL includes `expires` and `signature`; do not build it by hand.
 
 ### Profile
 
@@ -382,6 +383,30 @@ Moving an order from a held status (`pending`, `processing`, `completed`) to `ca
 ```
 
 Customer → **403**.
+
+#### Users
+
+List and manage registered users. No create or delete — registration stays on the public API; hard delete stays on `DELETE /profile`.
+
+| Method | Endpoint | Description |
+| ------ | -------- | ----------- |
+| GET | `/users` | Paginated list of all users |
+| GET | `/users/{id}` | User detail |
+| PUT/PATCH | `/users/{id}` | Update `is_active` only |
+
+**Query (`GET /users`):** `per_page` (1–50, default 10), `active` (`1` = active, `0` = inactive; omit for all), `sort` (`role` \| `created_at`), `order` (`asc` \| `desc`).
+
+**Response fields:** `id`, `name`, `email`, `role`, `is_active`, `email_verified_at`, `phone`, shipping fields, `created_at`.
+
+**PATCH body:**
+
+```json
+{
+  "is_active": false
+}
+```
+
+Admin cannot change their own `is_active` → **403**. Setting `is_active` to `false` revokes all Sanctum tokens for that user (existing Bearer tokens stop working). Customer → **403**.
 
 ### Errors
 
