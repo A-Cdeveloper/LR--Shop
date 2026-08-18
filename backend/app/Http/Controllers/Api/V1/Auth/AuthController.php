@@ -39,9 +39,14 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
-
+        // Check if the user has verified their email
         if (! $user->hasVerifiedEmail()) {
             return response()->json(['message' => 'Please verify your email first.'], 403);
+        }
+
+        // Check if the user is active
+        if (! $user->is_active) {
+            return response()->json(['message' => 'Your account is not active. Please contact support.'], 403);
         }
 
         $user->token = $user->createToken('auth_token')->plainTextToken;
