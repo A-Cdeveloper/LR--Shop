@@ -60,7 +60,7 @@ class AdminOrderController extends Controller
 
         if ($newStatus === $oldStatus) {
             return (new OrderResource($order->load('items')))
-                ->additional(['message' => 'Order status updated successfully.']);
+                ->additional(['message' => __('api.orders.status_updated')]);
         }
 
         DB::transaction(function () use ($order, $newStatus, $oldStatus) {
@@ -83,7 +83,7 @@ class AdminOrderController extends Controller
         });
 
         return (new OrderResource($order->fresh()->load('items')))
-            ->additional(['message' => 'Order status updated successfully.']);
+            ->additional(['message' => __('api.orders.status_updated')]);
     }
 
     private function shouldRestoreStock(string $from, string $to): bool

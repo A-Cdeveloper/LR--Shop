@@ -33,7 +33,7 @@ class OrderController extends Controller
     {
         $user = $request->user();
         if ($order->user_id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized.'], 404);
+            return response()->json(['message' => __('api.common.unauthorized')], 404);
         }
         return new OrderResource($order->load('items'));
     }
@@ -46,7 +46,7 @@ class OrderController extends Controller
         $cart = $user->cart()->with('items.product')->first();
 
         if (! $cart || $cart->items->isEmpty()) {
-            return response()->json(['message' => 'Cart is empty.'], 422);
+            return response()->json(['message' => __('api.orders.cart_empty')], 422);
         }
 
         $order = DB::transaction(function () use ($orderData, $user, $cart) {
@@ -56,7 +56,7 @@ class OrderController extends Controller
                 $product = $item->product()->lockForUpdate()->first();
                 if ($item->quantity > $product->stock) {
                     abort(response()->json([
-                        'message' => 'Not enough stock.',
+                        'message' => __('api.cart.not_enough_stock'),
                     ], 422));
                 }
                 $product->decrement('stock', $item->quantity);
@@ -90,7 +90,7 @@ class OrderController extends Controller
 
         return (new OrderResource($order->load('items')))
             ->additional([
-                'message' => 'Order placed successfully.',
+                'message' => __('api.orders.placed'),
             ])
             ->response()
             ->setStatusCode(201);

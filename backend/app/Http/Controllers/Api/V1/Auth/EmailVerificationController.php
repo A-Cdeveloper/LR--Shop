@@ -13,7 +13,7 @@ class EmailVerificationController extends Controller
         $user = \App\Models\User::findOrFail($id);
 
         if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
-            abort(403, 'Invalid verification link.');
+            abort(403, __('api.auth.invalid_verification_link'));
         }
 
         if (! $user->hasVerifiedEmail()) {
@@ -22,7 +22,7 @@ class EmailVerificationController extends Controller
         }
 
         return response()->json([
-            'message' => 'Email verified.',
+            'message' => __('api.auth.email_verified'),
         ]);
     }
 }

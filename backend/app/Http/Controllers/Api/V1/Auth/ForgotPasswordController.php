@@ -16,7 +16,7 @@ class ForgotPasswordController extends Controller
         Password::sendResetLink($request->only('email'));
 
         return response()->json([
-            'message' => 'If that email exists, we sent a reset link.',
+            'message' => __('api.auth.forgot_password_sent'),
         ], 200);
     
     }

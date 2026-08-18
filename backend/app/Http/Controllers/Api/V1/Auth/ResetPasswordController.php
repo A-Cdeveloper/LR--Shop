@@ -22,12 +22,12 @@ class ResetPasswordController extends Controller
 
         if ($status !== Password::PASSWORD_RESET) {
             return response()->json([
-                'message' => 'This password reset token is invalid.',
+                'message' => __('api.auth.reset_token_invalid'),
             ], 422);
         }
 
         return response()->json([
-            'message' => 'Password reset successfully',
+            'message' => __('api.auth.password_reset'),
         ], 200);
     }
 }

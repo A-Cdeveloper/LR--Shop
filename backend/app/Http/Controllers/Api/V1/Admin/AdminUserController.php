@@ -39,7 +39,7 @@ class AdminUserController extends Controller
     {
         if ($user->id === $request->user()->id) {
             return response()->json([
-                'message' => 'You cannot change your own active status.',
+                'message' => __('api.admin.cannot_change_own_active_status'),
             ], 403);
         }
 
@@ -50,6 +50,6 @@ class AdminUserController extends Controller
         }
 
         return (new AdminUserResource($user->fresh()))
-            ->additional(['message' => 'User updated successfully.']);
+            ->additional(['message' => __('api.admin.user_updated')]);
     }
 }

@@ -44,7 +44,7 @@ class AdminProductController extends Controller
         $product->load('category');
 
         return (new ProductResource($product))
-            ->additional(['message' => 'Product created successfully.'])
+            ->additional(['message' => __('api.admin.product_created')])
             ->response()
             ->setStatusCode(201);
     }
@@ -67,7 +67,7 @@ class AdminProductController extends Controller
         $product->update($request->validated());
         $product->load('category');
         return (new ProductResource($product->fresh()))
-            ->additional(['message' => 'Product updated successfully.']);
+            ->additional(['message' => __('api.admin.product_updated')]);
     }
 
     /**

@@ -61,7 +61,7 @@ class CartController extends Controller
         }
 
         if (! $cart) {
-            return response()->json(['message' => 'Cart not found'], 404);
+            return response()->json(['message' => __('api.cart.not_found')], 404);
         }
 
         $cart->items()->delete();

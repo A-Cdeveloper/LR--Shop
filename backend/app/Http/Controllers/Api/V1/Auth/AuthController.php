@@ -23,7 +23,7 @@ class AuthController extends Controller
         $user->sendEmailVerificationNotification();
         return (new UserResource($user))
             ->additional([
-                'message' => 'Registered. Check your email to activate your account. Please also check spam folder.',
+                'message' => __('api.auth.registered'),
             ])
             ->response()
             ->setStatusCode(201);
@@ -36,17 +36,17 @@ class AuthController extends Controller
 
         // Check if the user exists and the password is correct
         if (!$user || !Hash::check($data['password'], $user->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            return response()->json(['message' => __('api.auth.invalid_credentials')], 401);
         }
 
         // Check if the user has verified their email
         if (! $user->hasVerifiedEmail()) {
-            return response()->json(['message' => 'Please verify your email first.'], 403);
+            return response()->json(['message' => __('api.auth.verify_email_first')], 403);
         }
 
         // Check if the user is active
         if (! $user->is_active) {
-            return response()->json(['message' => 'Your account is not active. Please contact support.'], 403);
+            return response()->json(['message' => __('api.auth.account_inactive')], 403);
         }
 
         $user->token = $user->createToken('auth_token')->plainTextToken;
@@ -58,6 +58,6 @@ class AuthController extends Controller
     {
         $user = $request->user();
         $user->currentAccessToken()->delete();
-        return response()->json(['message' => 'Logged out'], 200);
+        return response()->json(['message' => __('api.auth.logged_out')], 200);
     }
 }

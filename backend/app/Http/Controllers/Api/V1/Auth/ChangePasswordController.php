@@ -15,9 +15,9 @@ class ChangePasswordController extends Controller
         if(Hash::check($request->current_password, $user->password)) {
             $user->password = $request->new_password;
             $user->save();
-            return response()->json(['message' => 'Password changed successfully'], 200);
+            return response()->json(['message' => __('api.auth.password_changed')], 200);
         } else {
-            return response()->json(['message' => 'Current password is incorrect'], 422);
+            return response()->json(['message' => __('api.auth.current_password_incorrect')], 422);
         }
     }
 }

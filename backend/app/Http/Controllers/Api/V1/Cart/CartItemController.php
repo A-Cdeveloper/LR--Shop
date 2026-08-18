@@ -20,7 +20,7 @@ class CartItemController extends Controller
         $cart = $this->resolveCart($request);
 
         if (! $cart) {
-            return response()->json(['message' => 'Cart not found'], 404);
+            return response()->json(['message' => __('api.cart.not_found')], 404);
         }
 
         $productId = $request->validated()['product_id'];
@@ -31,7 +31,7 @@ class CartItemController extends Controller
         $alreadyInCart = $item?->quantity ?? 0;
 
         if ($alreadyInCart + $quantity > $product->stock) {
-            return response()->json(['message' => 'Not enough stock.'], 422);
+            return response()->json(['message' => __('api.cart.not_enough_stock')], 422);
         }
 
         if ($item) {
@@ -61,7 +61,7 @@ class CartItemController extends Controller
         $quantity = (int) $request->validated('quantity');
 
         if ($quantity > $cartItem->product->stock) {
-            abort(422, 'Not enough stock for this product.');
+            abort(422, __('api.cart.not_enough_stock_for_product'));
         }
 
         $cartItem->update(['quantity' => $quantity]);
@@ -114,7 +114,7 @@ class CartItemController extends Controller
     private function ensureCartItemBelongsToCart(CartItem $cartItem, ?Cart $cart): void
     {
         if (! $cart || $cartItem->cart_id !== $cart->id) {
-            abort(404, 'Cart item not found');
+            abort(404, __('api.cart.item_not_found'));
         }
     }
 }

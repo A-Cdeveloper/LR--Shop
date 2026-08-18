@@ -20,7 +20,7 @@ class ProfileController extends Controller
         $user->update($request->validated());
 
         return (new UserResource($user->fresh()))
-            ->additional(['message' => 'Profile updated successfully.']);
+            ->additional(['message' => __('api.auth.profile_updated')]);
     }
 
     public function destroy(Request $request)
@@ -28,7 +28,7 @@ class ProfileController extends Controller
         $user = $request->user();
 
         if ($user->isAdmin()) {
-            return response()->json(['message' => 'Admin account cannot be deleted.'], 403);
+            return response()->json(['message' => __('api.auth.admin_cannot_delete')], 403);
         }
 
         $user->cart()?->delete(); // cart_items cascade sa cart-om

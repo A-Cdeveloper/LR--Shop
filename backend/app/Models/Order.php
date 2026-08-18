@@ -56,7 +56,7 @@ class Order extends Model
 
         if (! in_array($status, self::STATUSES, true)) {
             abort(response()->json([
-                'message' => 'Invalid status.',
+                'message' => __('api.orders.invalid_status'),
             ], 422));
         }
 

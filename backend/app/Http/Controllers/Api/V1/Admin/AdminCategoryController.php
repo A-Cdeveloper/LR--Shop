@@ -36,7 +36,7 @@ class AdminCategoryController extends Controller
         $category = Category::create($request->validated());
 
         return (new CategoryResource($category->loadCount('products')))
-            ->additional(['message' => 'Category created successfully.'])
+            ->additional(['message' => __('api.admin.category_created')])
             ->response()
             ->setStatusCode(201);
     }
@@ -57,7 +57,7 @@ class AdminCategoryController extends Controller
         $category->update($request->validated());
 
         return (new CategoryResource($category->fresh()->loadCount('products')))
-            ->additional(['message' => 'Category updated successfully.']);
+            ->additional(['message' => __('api.admin.category_updated')]);
     }
 
     /**
@@ -67,7 +67,7 @@ class AdminCategoryController extends Controller
     {
         if ($category->products()->exists()) {
             return response()->json([
-                'message' => 'Cannot delete category with products.',
+                'message' => __('api.admin.category_delete_has_products'),
             ], 422);
         }
 
