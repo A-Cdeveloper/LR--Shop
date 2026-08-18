@@ -26,6 +26,7 @@ Implemented:
 - User carts (`user_id`) and guest cart merge on login/register
 - Orders API (checkout, list, show — auth required; shipping from profile)
 - Profile API (GET/PATCH/DELETE — hard delete; admins blocked)
+- E.164 phone validation on profile and checkout
 - Clear cart (`DELETE /cart`)
 - User roles (`customer` / `admin`) and admin middleware
 - Admin uploads, category CRUD, product CRUD, and order status management
@@ -117,6 +118,8 @@ Logged-in users only (`auth:sanctum`).
 **DELETE `/profile`:** removes the user, Sanctum tokens, cart, and orders (DB cascade). Admin accounts cannot be deleted this way.
 
 **Profile fields:** `id`, `name`, `email`, `role`, `phone`, `shipping_address`, `city`, `state`, `zip`, `country`, timestamps. `token` only on login.
+
+**Phone:** optional. If sent, E.164 (`+` and 8–15 digits, e.g. `+381641234567`). Spaces and dashes are stripped. Invalid format → **422**. Register does not collect phone.
 
 **PATCH `/profile` body** (send only what you change):
 
@@ -271,7 +274,7 @@ Logged-in users only (`auth:sanctum`). Guest checkout is **not** supported — l
 | GET | `/orders` | List my orders (summary) |
 | GET | `/orders/{id}` | Order detail (own orders only) |
 
-Shipping is taken from the **user profile** when the body is empty. Body fields override profile. Incomplete profile (missing phone/address) → **422**.
+Shipping is taken from the **user profile** when the body is empty. Body fields override profile. Incomplete profile (missing phone/address) → **422**. `customer_phone` must be E.164 (same as profile); spaces/dashes are stripped.
 
 **POST `/orders` body** (optional if profile is complete):
 
@@ -432,7 +435,6 @@ Things we skipped on purpose (MVP). Do these before production / when polishing:
 
 ### Auth
 
-- [ ] Stronger phone validation (regex or `propaganistas/laravel-phone`)
 - [ ] Same Sanctum token expiry on login
 - [ ] Optional: revoke other tokens after change-password
 - [ ] Refresh-token style flow (only if needed; Sanctum is usually enough)
