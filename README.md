@@ -22,7 +22,7 @@ Implemented:
 - Categories API (read-only)
 - Products API (read-only)
 - Guest cart API (`X-Cart-Token`)
-- Auth API (register, login, logout, forgot/reset/change password)
+- Auth API (register, email verify, login, logout, forgot/reset/change password)
 - User carts (`user_id`) and guest cart merge on login/register
 - Orders API (checkout, list, show — auth required; shipping from profile)
 - Profile API (GET/PATCH/DELETE — hard delete; admins blocked)
@@ -85,21 +85,24 @@ GET /api/v1/categories/phones
 
 ### Auth
 
-Sanctum **Bearer** tokens. Register and login return the token in `data.token`. Send it on protected routes:
+Sanctum **Bearer** tokens. Login returns the token in `data.token`. Send it on protected routes:
 
 ```text
 Authorization: Bearer {token}
 Accept: application/json
 ```
 
-| Method | Endpoint           | Auth | Description                                     |
-| ------ | ------------------ | ---- | ----------------------------------------------- |
-| POST   | `/register`        | no   | Create account, return token                    |
-| POST   | `/login`           | no   | Return token                                    |
-| POST   | `/logout`          | yes  | Revoke current token                            |
-| POST   | `/forgot-password` | no   | Send reset link (Mailpit locally)               |
-| POST   | `/reset-password`  | no   | Set new password using email token              |
-| POST   | `/change-password` | yes  | Change password while logged in                 |
+| Method | Endpoint                    | Auth | Description                                              |
+| ------ | --------------------------- | ---- | -------------------------------------------------------- |
+| POST   | `/register`                 | no   | Create account, send verification email (**no token**)   |
+| GET    | `/email/verify/{id}/{hash}` | no   | Confirm email via signed link from mail (no token)       |
+| POST   | `/login`                    | no   | Return token (unverified → **403**)                      |
+| POST   | `/logout`                   | yes  | Revoke current token                                     |
+| POST   | `/forgot-password`          | no   | Send reset link (Mailpit locally)                        |
+| POST   | `/reset-password`           | no   | Set new password using email token                       |
+| POST   | `/change-password`          | yes  | Change password while logged in                          |
+
+**Email verification:** `POST /register` creates the user with `email_verified_at = null` and sends a signed link (Mailpit locally). Open the full URL from the mail (browser or GET in Postman). Success: `"Email verified."` — still **no** token. Then `POST /login`. Unverified login → **403** `Please verify your email first.` Invalid credentials still **401**. The verify URL includes `expires` and `signature`; do not build it by hand.
 
 ### Profile
 
@@ -113,7 +116,7 @@ Logged-in users only (`auth:sanctum`).
 
 **DELETE `/profile`:** removes the user, Sanctum tokens, cart, and orders (DB cascade). Admin accounts cannot be deleted this way.
 
-**Profile fields:** `id`, `name`, `email`, `role`, `phone`, `shipping_address`, `city`, `state`, `zip`, `country`, timestamps. `token` only on login/register.
+**Profile fields:** `id`, `name`, `email`, `role`, `phone`, `shipping_address`, `city`, `state`, `zip`, `country`, timestamps. `token` only on login.
 
 **PATCH `/profile` body** (send only what you change):
 
@@ -430,8 +433,7 @@ Things we skipped on purpose (MVP). Do these before production / when polishing:
 ### Auth
 
 - [ ] Stronger phone validation (regex or `propaganistas/laravel-phone`)
-- [ ] Email verification (`MustVerifyEmail`)
-- [ ] Same Sanctum token expiry on login and register
+- [ ] Same Sanctum token expiry on login
 - [ ] Optional: revoke other tokens after change-password
 - [ ] Refresh-token style flow (only if needed; Sanctum is usually enough)
 
