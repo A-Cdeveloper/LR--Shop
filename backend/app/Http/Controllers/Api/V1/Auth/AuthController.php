@@ -23,7 +23,7 @@ class AuthController extends Controller
         $user->sendEmailVerificationNotification();
         return (new UserResource($user))
             ->additional([
-                'message' => 'Registered. Check your email to verify your account.',
+                'message' => 'Registered. Check your email to activate your account. Please also check spam folder.',
             ])
             ->response()
             ->setStatusCode(201);
