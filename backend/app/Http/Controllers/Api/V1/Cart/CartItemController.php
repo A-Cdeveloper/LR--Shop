@@ -8,7 +8,9 @@ use App\Http\Requests\Cart\UpdateCartItemRequest;
 use App\Http\Resources\Cart\CartItemResource;
 use App\Models\Cart;
 use App\Models\CartItem;
+use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class CartItemController extends Controller
 {
@@ -25,7 +27,7 @@ class CartItemController extends Controller
 
         $productId = $request->validated()['product_id'];
         $quantity = $request->validated()['quantity'];
-        $product = \App\Models\Product::findOrFail($productId);
+        $product = Product::findOrFail($productId);
 
         $item = $cart->items()->where('product_id', $productId)->first();
         $alreadyInCart = $item?->quantity ?? 0;
@@ -94,7 +96,7 @@ class CartItemController extends Controller
         if ($user) {
             return Cart::firstOrCreate(
                 ['user_id' => $user->id],
-                ['token' => (string) \Illuminate\Support\Str::uuid()]
+                ['token' => (string) Str::uuid()]
             );
         }
 

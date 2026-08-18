@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Cart\CartResource;
 use App\Models\Cart;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class CartController extends Controller
 {
@@ -23,7 +24,7 @@ class CartController extends Controller
         if ($user) {
             $cart = Cart::firstOrCreate(
                 ['user_id' => $user->id],
-                ['token' => (string) \Illuminate\Support\Str::uuid()]
+                ['token' => (string) Str::uuid()]
             );
         } else {
             $token = $request->header('X-Cart-Token');
@@ -34,7 +35,7 @@ class CartController extends Controller
 
             if (! $cart) {
                 $cart = Cart::create([
-                    'token' => (string) \Illuminate\Support\Str::uuid(),
+                    'token' => (string) Str::uuid(),
                 ]);
             }
         }

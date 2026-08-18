@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ResendVerificationRequest;
 use App\Models\User;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 
 
@@ -12,7 +13,7 @@ class EmailVerificationController extends Controller
 {
     public function verify(Request $request, string $id, string $hash)
     {
-        $user = \App\Models\User::findOrFail($id);
+        $user = User::findOrFail($id);
 
         if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
             abort(403, __('api.auth.invalid_verification_link'));
@@ -20,7 +21,7 @@ class EmailVerificationController extends Controller
 
         if (! $user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
-            event(new \Illuminate\Auth\Events\Verified($user));
+            event(new Verified($user));
         }
 
         return response()->json([
