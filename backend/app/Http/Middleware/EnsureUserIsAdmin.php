@@ -16,7 +16,7 @@ class EnsureUserIsAdmin
     public function handle(Request $request, Closure $next)
     {
         if (! $request->user() || ! $request->user()->isAdmin()) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            return response()->json(['message' => 'You are not authorized to access this resource.'], 403);
         }
 
         return $next($request); // continue to the controller

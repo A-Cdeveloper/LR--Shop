@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Builder;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -70,5 +71,27 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isAdmin()
     {
         return $this->role === 'admin';
+    }
+
+    public function scopeSortBy(Builder $query, ?string $field, ?string $direction): Builder
+    {
+        $allowedFields = ['role', 'created_at'];
+        $direction = strtolower($direction ?? 'asc') === 'desc' ? 'desc' : 'asc';
+
+        if (! in_array($field, $allowedFields, true)) {
+            return $query->orderBy('role'); // default
+        }
+
+        return $query->orderBy($field, $direction);
+    }
+
+
+    public function scopeFilterActive(Builder $query, ?string $value): Builder
+    {
+        if (! in_array($value, ['1', '0'], true)) {
+            return $query;
+        }
+
+        return $query->where('is_active', $value === '1');
     }
 }

@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V1\Admin\AdminCategoryController;
 use App\Http\Controllers\Api\V1\Admin\AdminProductController;
 use App\Http\Controllers\Api\V1\Admin\AdminOrderController;
 use App\Http\Controllers\Api\V1\Admin\AdminUploadController;
+use App\Http\Controllers\Api\V1\Admin\AdminUserController;
 use App\Http\Controllers\Api\V1\Auth\EmailVerificationController;
 
 // Public
@@ -70,4 +71,6 @@ Route::middleware(['auth:sanctum', 'admin', 'throttle:api'])
         Route::apiResource('categories', AdminCategoryController::class);
         Route::apiResource('products', AdminProductController::class);
         Route::apiResource('orders', AdminOrderController::class)->only(['index', 'show', 'update']);
+
+        Route::apiResource('users', AdminUserController::class)->only(['index', 'show', 'update']);
     });
