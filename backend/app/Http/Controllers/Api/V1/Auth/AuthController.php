@@ -49,7 +49,7 @@ class AuthController extends Controller
             return response()->json(['message' => __('api.auth.account_inactive')], 403);
         }
 
-        $user->token = $user->createToken('auth_token')->plainTextToken;
+        $user->token = $user->createToken('auth_token', ['*'], now()->addDays(7))->plainTextToken;
         Cart::mergeGuest($request->header('X-Cart-Token'), $user);
         return new UserResource($user);
     }
