@@ -29,6 +29,12 @@ class StoreOrderRequest extends FormRequest
             'zip' => $this->input('zip', $user->zip),
             'country' => $this->input('country', $user->country),
         ]);
+
+        $phone = preg_replace('/[\s\-\/\(\)]/', '', (string) $this->input('customer_phone'));
+
+        $this->merge([
+            'customer_phone' => $phone === '' ? null : $phone,
+        ]);
     }
 
     /**
@@ -38,7 +44,7 @@ class StoreOrderRequest extends FormRequest
     {
         return [
             'customer_name' => ['required', 'string', 'max:255'],
-            'customer_phone' => ['required', 'string', 'max:50'],
+            'customer_phone' => ['required', 'string', 'max:50', 'regex:/^\+[1-9]\d{7,14}$/'],
             'shipping_address' => ['required', 'string', 'max:255'],
             'city' => ['required', 'string', 'max:100'],
             'state' => ['required', 'string', 'max:100'],

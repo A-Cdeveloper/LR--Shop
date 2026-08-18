@@ -12,6 +12,19 @@ class UpdateProfileRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if (! $this->has('phone') || $this->input('phone') === null) {
+            return;
+        }
+
+        $phone = preg_replace('/[\s\-\/\(\)]/', '', (string) $this->input('phone'));
+
+        $this->merge([
+            'phone' => $phone === '' ? null : $phone,
+        ]);
+    }
+
     /**
      * @return array<string, ValidationRule|array<mixed>|string>
      */
@@ -26,7 +39,7 @@ class UpdateProfileRequest extends FormRequest
                 'max:255',
                 'unique:users,email,' . $this->user()->id,
             ],
-            'phone' => ['sometimes', 'nullable', 'string', 'max:50'],
+            'phone' => ['sometimes', 'nullable', 'string', 'max:50', 'regex:/^\+[1-9]\d{7,14}$/'],
             'shipping_address' => ['sometimes', 'nullable', 'string', 'max:255'],
             'city' => ['sometimes', 'nullable', 'string', 'max:100'],
             'state' => ['sometimes', 'nullable', 'string', 'max:100'],
