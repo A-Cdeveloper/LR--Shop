@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V1\Admin\AdminCategoryController;
 use App\Http\Controllers\Api\V1\Admin\AdminProductController;
 use App\Http\Controllers\Api\V1\Admin\AdminOrderController;
 use App\Http\Controllers\Api\V1\Admin\AdminUploadController;
+use App\Http\Controllers\Api\V1\Auth\EmailVerificationController;
 
 // Public
 Route::prefix('v1')->group(function () {
@@ -28,6 +29,9 @@ Route::prefix('v1')->group(function () {
     Route::delete('cart/items/{cartItem}', [CartItemController::class, 'destroy']);
 
     Route::post('register', [AuthController::class, 'register']);
+    Route::get('email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+        ->middleware('signed')
+        ->name('verification.verify');
     Route::post('login', [AuthController::class, 'login']);
     Route::post('forgot-password', [ForgotPasswordController::class, 'store'])->name('forgot-password');
     Route::post('reset-password', [ResetPasswordController::class, 'update'])->name('reset-password');

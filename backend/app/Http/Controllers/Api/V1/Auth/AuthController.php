@@ -18,18 +18,32 @@ class AuthController extends Controller
     {
         $user = User::create($request->validated());
         Cart::mergeGuest($request->header('X-Cart-Token'), $user);
-        $user->token = $user->createToken('auth_token', ['*'], now()->addDays(7))->plainTextToken;
 
-        return new UserResource($user);
+
+        $user->sendEmailVerificationNotification();
+        return (new UserResource($user))
+            ->additional([
+                'message' => 'Registered. Check your email to verify your account.',
+            ])
+            ->response()
+            ->setStatusCode(201);
     }
 
     public function login(LoginRequest $request)
     {
         $data = $request->validated();
         $user = User::where('email', $data['email'])->first();
-        if(!$user || !Hash::check($data['password'], $user->password)) {
+
+        // Check if the user exists and the password is correct
+        if (!$user || !Hash::check($data['password'], $user->password)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
+
+
+        if (! $user->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Please verify your email first.'], 403);
+        }
+
         $user->token = $user->createToken('auth_token')->plainTextToken;
         Cart::mergeGuest($request->header('X-Cart-Token'), $user);
         return new UserResource($user);
@@ -41,4 +55,4 @@ class AuthController extends Controller
         $user->currentAccessToken()->delete();
         return response()->json(['message' => 'Logged out'], 200);
     }
-}   
+}
