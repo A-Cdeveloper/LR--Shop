@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Orders\StoreOrderRequest;
 use App\Http\Resources\Orders\OrderResource;
 use App\Http\Resources\Orders\OrderSummaryResource;
+use App\Mail\OrderPlacedMail;
 use App\Models\Order;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class OrderController extends Controller
 {
@@ -87,6 +89,9 @@ class OrderController extends Controller
 
             return $order;
         });
+
+
+        Mail::to($user->email)->send(new OrderPlacedMail($order->load('items')));
 
         return (new OrderResource($order->load('items')))
             ->additional([
