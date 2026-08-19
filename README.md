@@ -22,9 +22,10 @@ Implemented:
 - Categories API (read-only)
 - Products API (read-only)
 - Guest cart API (`X-Cart-Token`)
-- Auth API (register, email verify, login, logout, forgot/reset/change password)
+- Auth API (register, email verify, resend verify, login, logout, forgot/reset/change password)
 - User carts (`user_id`) and guest cart merge on login/register
 - Orders API (checkout, list, show — auth required; shipping from profile)
+- Order confirmation email on checkout (Mailpit locally)
 - Profile API (GET/PATCH/DELETE — hard delete; admins blocked)
 - E.164 phone validation on profile and checkout
 - Clear cart (`DELETE /cart`)
@@ -96,9 +97,10 @@ Accept: application/json
 
 | Method | Endpoint                    | Auth | Description                                              |
 | ------ | --------------------------- | ---- | -------------------------------------------------------- |
-| POST   | `/register`                 | no   | Create account, send verification email (**no token**)   |
-| GET    | `/email/verify/{id}/{hash}` | no   | Confirm email via signed link from mail (no token)       |
-| POST   | `/login`                    | no   | Return token (unverified or inactive → **403**)          |
+| POST   | `/register`                              | no   | Create account, send verification email (**no token**)            |
+| GET    | `/email/verify/{id}/{hash}`              | no   | Confirm email via signed link from mail (no token)                |
+| POST   | `/email/verification-notification`       | no   | Resend verification link (`{ "email": "..." }`)                   |
+| POST   | `/login`                                 | no   | Return token (unverified or inactive → **403**)                   |
 | POST   | `/logout`                   | yes  | Revoke current token                                     |
 | POST   | `/forgot-password`          | no   | Send reset link (Mailpit locally)                        |
 | POST   | `/reset-password`           | no   | Set new password using email token                       |
@@ -295,7 +297,7 @@ Shipping is taken from the **user profile** when the body is empty. Body fields 
 
 **Detail / create response fields:** `id`, `status`, `total`, address fields, `items` (`product_id`, `product_name`, `price`, `quantity`, `subtotal`), timestamps
 
-Successful create also returns `"message": "Order placed successfully."` and status **201**. Empty cart → **422**. Not enough stock → **422**; product `stock` is decremented inside a transaction (`lockForUpdate`).
+Successful create also returns `"message": "Order placed successfully."` and status **201**. Empty cart → **422**. Not enough stock → **422**; product `stock` is decremented inside a transaction (`lockForUpdate`). An order confirmation email is sent to the user's address (Mailpit locally) with order number, total, items, and shipping address.
 
 ### Admin
 
@@ -460,14 +462,12 @@ Things we skipped on purpose (MVP). Do these before production / when polishing:
 
 ### Auth
 
-- [ ] Same Sanctum token expiry on login
 - [ ] Optional: revoke other tokens after change-password
 - [ ] Refresh-token style flow (only if needed; Sanctum is usually enough)
 
 ### Cart / Orders
 
 - [ ] Payment (Stripe / etc.)
-- [ ] Order confirmation email (Mailpit locally)
 
 ### Admin / tooling
 
