@@ -48,6 +48,8 @@ return [
         'product_updated' => 'Product updated successfully.',
         'user_updated' => 'User updated successfully.',
         'cannot_change_own_active_status' => 'You cannot change your own active status.',
+        'delivery_method_created' => 'Delivery method created successfully.',
+        'delivery_method_updated' => 'Delivery method updated successfully.',
     ],
 
 ];
