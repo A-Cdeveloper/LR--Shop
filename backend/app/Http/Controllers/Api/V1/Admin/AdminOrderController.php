@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateOrderStatusRequest;
 use App\Http\Resources\Orders\OrderResource;
+use App\Mail\OrderStatusMail;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class AdminOrderController extends Controller
 {
@@ -82,7 +84,11 @@ class AdminOrderController extends Controller
             $order->update(['status' => $newStatus]);
         });
 
-        return (new OrderResource($order->fresh()->load('items')))
+        $order = $order->fresh()->load('items');
+
+        Mail::to($order->user->email)->send(new OrderStatusMail($order, $oldStatus));
+
+        return (new OrderResource($order))
             ->additional(['message' => __('api.orders.status_updated')]);
     }
 

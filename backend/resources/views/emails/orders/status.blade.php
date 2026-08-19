@@ -1,9 +1,11 @@
 <x-mail::message>
-# Order #{{ $order->id }} received
+#
+Order #{{ $order->id }} — **{{ $order->status }}**
+#
 
 Hello {{ $order->customer_name }},
 
-We received your order. Total: **{{ number_format($order->total, 2) }}**.
+Your order status has changed from {{ $oldStatus }} to {{ $order->status }}.
 
 <x-mail::table>
 | Product | Qty | Subtotal |
@@ -13,7 +15,7 @@ We received your order. Total: **{{ number_format($order->total, 2) }}**.
 @endforeach
 </x-mail::table>
 
-Shipping: {{ $order->shipping_address }}, {{ $order->city }}, {{ $order->zip }}, {{ $order->country }}
+**Total:** {{ number_format($order->total, 2) }}
 
 Thanks,<br>
 {{ config('app.name') }}
