@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\Admin\AdminCategoryController;
 use App\Http\Controllers\Api\V1\Admin\AdminProductController;
 use App\Http\Controllers\Api\V1\Admin\AdminOrderController;
+use App\Http\Controllers\Api\V1\Admin\AdminSettingController;
 use App\Http\Controllers\Api\V1\Admin\AdminUploadController;
 use App\Http\Controllers\Api\V1\Admin\AdminUserController;
 use App\Http\Controllers\Api\V1\Auth\EmailVerificationController;
@@ -74,4 +75,8 @@ Route::middleware(['auth:sanctum', 'admin', 'throttle:api'])
         Route::apiResource('orders', AdminOrderController::class)->only(['index', 'show', 'update']);
 
         Route::apiResource('users', AdminUserController::class)->only(['index', 'show', 'update']);
+
+
+        Route::get('settings', [AdminSettingController::class, 'index'])->name('settings.index');
+        Route::patch('settings', [AdminSettingController::class, 'update'])->name('settings.update');
     });

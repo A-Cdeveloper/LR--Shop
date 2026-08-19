@@ -33,7 +33,7 @@ Implemented:
 - Clear cart (`DELETE /cart`)
 - User roles (`customer` / `admin`) and admin middleware
 - User `is_active` flag; inactive users cannot log in
-- Admin uploads, category CRUD, product CRUD, order status, and user management
+- Admin uploads, category CRUD, product CRUD, order status, user management, and shop settings
 - Product stock: cart cannot exceed stock; checkout decrements; cancel/fail/refund restores
 - Category, product, and cart seed data
 - API Resources for JSON responses
@@ -384,6 +384,32 @@ Moving an order from a held status (`pending`, `processing`, `completed`) to `ca
   "status": "processing"
 }
 ```
+
+Customer → **403**.
+
+#### Settings
+
+Shop-wide configuration. Admin reads and updates key/value pairs. Keys are defined in code (`Setting::KEYS`); admin can only change values, not add new keys.
+
+| Method | Endpoint | Description |
+| ------ | -------- | ----------- |
+| GET | `/settings` | Return all settings as `{ key: value }` map |
+| PATCH | `/settings` | Bulk update one or more settings |
+
+**PATCH body:**
+
+```json
+{
+  "settings": [
+    { "key": "shop.name", "value": "My Shop" },
+    { "key": "shop.theme_color", "value": "#ff0000" }
+  ]
+}
+```
+
+Only keys from `Setting::KEYS` are accepted (others → **422**). `value` can be `null`. Keys not sent are not changed.
+
+**Available keys:** `shop.name`, `shop.email`, `shop.phone`, `shop.address_line1`, `shop.address_line2`, `shop.city`, `shop.state`, `shop.zip`, `shop.country`, `shop.logo_url`, `shop.theme_color`, `shop.currency`, `shop.locale`, `shop.timezone`, `shop.orders_per_page`, `shop.products_per_page`.
 
 Customer → **403**.
 
