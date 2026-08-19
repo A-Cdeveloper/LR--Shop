@@ -26,6 +26,8 @@ Implemented:
 - User carts (`user_id`) and guest cart merge on login/register
 - Orders API (checkout, list, show — auth required; shipping from profile)
 - Order confirmation email on checkout (Mailpit locally)
+- Order status change email to customer when admin updates status (Mailpit locally)
+- CORS configured via `FRONTEND_URL` env variable (default `http://localhost:5173`)
 - Profile API (GET/PATCH/DELETE — hard delete; admins blocked)
 - E.164 phone validation on profile and checkout
 - Clear cart (`DELETE /cart`)
@@ -42,7 +44,6 @@ Implemented:
 Planned:
 
 - Stripe test payments
-- CORS for the React frontend
 
 ## API
 
@@ -374,7 +375,7 @@ Admins see **all** orders. Checkout stays on the customer API (`POST /orders`). 
 
 **Statuses:** `pending`, `processing`, `completed`, `cancelled`, `failed`, `refunded`. New checkouts start as `pending`.
 
-Moving an order from a held status (`pending`, `processing`, `completed`) to `cancelled`, `failed`, or `refunded` **restores** product stock. The same status again does not double-restore.
+Moving an order from a held status (`pending`, `processing`, `completed`) to `cancelled`, `failed`, or `refunded` **restores** product stock. The same status again does not double-restore. Every status change sends an email to the customer (Mailpit locally) with the old and new status plus order items.
 
 **PATCH body:**
 
