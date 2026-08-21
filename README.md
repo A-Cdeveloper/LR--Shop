@@ -25,6 +25,8 @@ Implemented:
 - Auth API (register, email verify, resend verify, login, logout, forgot/reset/change password)
 - User carts (`user_id`) and guest cart merge on login/register
 - Orders API (checkout, list, show — auth required; shipping from profile)
+- Delivery methods (public list + admin CRUD); checkout requires `delivery_method_id` with price/`free_over` snapshot
+- Order currency snapshot from `shop.currency` settings at checkout
 - Order confirmation email on checkout (Mailpit locally)
 - Order status change email to customer when admin updates status (Mailpit locally)
 - CORS configured via `FRONTEND_URL` env variable (default `http://localhost:5173`)
@@ -33,7 +35,7 @@ Implemented:
 - Clear cart (`DELETE /cart`)
 - User roles (`customer` / `admin`) and admin middleware
 - User `is_active` flag; inactive users cannot log in
-- Admin uploads, category CRUD, product CRUD, order status, user management, and shop settings
+- Admin uploads, category CRUD, product CRUD, order status, user management, shop settings, and delivery methods
 - Product stock: cart cannot exceed stock; checkout decrements; cancel/fail/refund restores
 - Category, product, and cart seed data
 - API Resources for JSON responses
@@ -268,6 +270,18 @@ Seed cart token (optional, for guest testing):
 00000000-0000-4000-8000-000000000001
 ```
 
+### Delivery methods
+
+Public list of **active** delivery options (no auth). Used at checkout.
+
+| Method | Endpoint | Description |
+| ------ | -------- | ----------- |
+| GET | `/delivery-methods` | Active delivery methods |
+
+**Fields:** `id`, `name`, `description`, `price`, `free_over`, `eta_days_min`, `eta_days_max`, `is_active`
+
+Seeded defaults: **Pickup in store** (`price` 0) and **Delivery to address** (`price` 500, free when cart subtotal ≥ `free_over` 5000).
+
 ### Orders
 
 Logged-in users only (`auth:sanctum`). Guest checkout is **not** supported — login/register first (cart merge applies). Checkout builds the order from the **user cart**, then clears cart items.
@@ -280,10 +294,13 @@ Logged-in users only (`auth:sanctum`). Guest checkout is **not** supported — l
 
 Shipping is taken from the **user profile** when the body is empty. Body fields override profile. Incomplete profile (missing phone/address) → **422**. `customer_phone` must be E.164 (same as profile); spaces/dashes are stripped.
 
-**POST `/orders` body** (optional if profile is complete):
+`delivery_method_id` is **required**. Must exist and be active; otherwise **422**. Checkout snapshots `delivery_method_name`, `delivery_price` (0 if subtotal ≥ `free_over`), and `currency` from settings (`shop.currency`, default `EUR`). Order `total` = cart subtotal + `delivery_price`.
+
+**POST `/orders` body** (`delivery_method_id` required; shipping optional if profile is complete):
 
 ```json
 {
+  "delivery_method_id": 2,
   "customer_name": "Ana Anic",
   "customer_phone": "+381641234567",
   "shipping_address": "Bulevar 1",
@@ -294,11 +311,11 @@ Shipping is taken from the **user profile** when the body is empty. Body fields 
 }
 ```
 
-**List (`GET /orders`) fields:** `id`, `status`, `total`, `items_count`, `created_at`
+**List (`GET /orders`) fields:** `id`, `status`, `total`, `currency`, `items_count`, `delivery_method_name`, `created_at`
 
-**Detail / create response fields:** `id`, `status`, `total`, address fields, `items` (`product_id`, `product_name`, `price`, `quantity`, `subtotal`), timestamps
+**Detail / create response fields:** `id`, `status`, `total`, `currency`, delivery snapshot fields, address fields, `items` (`product_id`, `product_name`, `price`, `quantity`, `subtotal`), timestamps
 
-Successful create also returns `"message": "Order placed successfully."` and status **201**. Empty cart → **422**. Not enough stock → **422**; product `stock` is decremented inside a transaction (`lockForUpdate`). An order confirmation email is sent to the user's address (Mailpit locally) with order number, total, items, and shipping address.
+Successful create also returns `"message": "Order placed successfully."` and status **201**. Empty cart → **422**. Not enough stock → **422**; product `stock` is decremented inside a transaction (`lockForUpdate`). An order confirmation email is sent to the user's address (Mailpit locally) with order number, total + currency, items, delivery, and shipping address.
 
 ### Admin
 
@@ -384,6 +401,20 @@ Moving an order from a held status (`pending`, `processing`, `completed`) to `ca
   "status": "processing"
 }
 ```
+
+Customer → **403**.
+
+#### Delivery methods
+
+| Method | Endpoint | Description |
+| ------ | -------- | ----------- |
+| GET | `/delivery-methods` | List all methods (including inactive) |
+| POST | `/delivery-methods` | Create |
+| GET | `/delivery-methods/{id}` | Show |
+| PUT/PATCH | `/delivery-methods/{id}` | Update (partial with `PATCH`) |
+| DELETE | `/delivery-methods/{id}` | Delete (`204`) |
+
+**Create/update body:** `name`, `description` (nullable), `price`, `free_over` (nullable), `eta_days_min` / `eta_days_max` (nullable), `is_active` (optional).
 
 Customer → **403**.
 

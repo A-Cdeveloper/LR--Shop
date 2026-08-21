@@ -7,7 +7,9 @@ use App\Http\Requests\Orders\StoreOrderRequest;
 use App\Http\Resources\Orders\OrderResource;
 use App\Http\Resources\Orders\OrderSummaryResource;
 use App\Mail\OrderPlacedMail;
+use App\Models\DeliveryMethod;
 use App\Models\Order;
+use App\Models\Setting;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -51,7 +53,21 @@ class OrderController extends Controller
             return response()->json(['message' => __('api.orders.cart_empty')], 422);
         }
 
-        $order = DB::transaction(function () use ($orderData, $user, $cart) {
+
+
+        $deliveryMethod = DeliveryMethod::query()
+            ->whereKey($orderData['delivery_method_id'])
+            ->where('is_active', true)
+            ->first();
+
+        if (! $deliveryMethod) {
+            return response()->json([
+                'message' => __('api.orders.invalid_delivery_method'),
+            ], 422);
+        }
+
+
+        $order = DB::transaction(function () use ($orderData, $user, $cart, $deliveryMethod) {
 
 
             foreach ($cart->items as $item) {
@@ -68,10 +84,28 @@ class OrderController extends Controller
                 return $item->quantity * $item->product->price;
             });
 
+
+            $deliveryPrice = (float) $deliveryMethod->price;
+
+            if (
+                $deliveryMethod->free_over !== null
+                && $total >= (float) $deliveryMethod->free_over
+            ) {
+                $deliveryPrice = 0;
+            }
+
+            $total = round($total + $deliveryPrice, 2);
+
+
+
             $order = Order::create([
                 'user_id' => $user->id,
                 'status' => 'pending',
                 'total' => round($total, 2),
+                'currency' => Setting::get('shop.currency', 'EUR'),
+                'delivery_method_id' => $deliveryMethod->id,
+                'delivery_method_name' => $deliveryMethod->name,
+                'delivery_price' => $deliveryPrice,
                 ...$orderData,
             ]);
 

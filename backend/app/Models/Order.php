@@ -28,6 +28,7 @@ class Order extends Model
         'user_id',
         'status',
         'total',
+        'currency',
         'customer_name',
         'customer_phone',
         'shipping_address',
@@ -35,6 +36,9 @@ class Order extends Model
         'state',
         'zip',
         'country',
+        'delivery_method_id',
+        'delivery_method_name',
+        'delivery_price',
     ];
 
     public function user()
@@ -45,6 +49,11 @@ class Order extends Model
     public function items()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function deliveryMethod()
+    {
+        return $this->belongsTo(DeliveryMethod::class);
     }
 
     public function scopeFilterStatus(Builder $query, ?string $status): Builder

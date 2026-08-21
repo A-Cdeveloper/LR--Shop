@@ -38,6 +38,7 @@ return [
         'placed' => 'Order placed successfully.',
         'invalid_status' => 'Invalid status.',
         'status_updated' => 'Order status updated successfully.',
+        'invalid_delivery_method' => 'Invalid or inactive delivery method.',
     ],
 
     'admin' => [
