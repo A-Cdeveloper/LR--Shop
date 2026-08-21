@@ -40,6 +40,7 @@ return [
         'status_updated' => 'Order status updated successfully.',
         'invalid_delivery_method' => 'Invalid or inactive delivery method.',
         'invalid_payment_method' => 'Invalid or inactive payment method.',
+        'payment_failed' => 'Could not start payment. Please try again.',
     ],
 
     'admin' => [

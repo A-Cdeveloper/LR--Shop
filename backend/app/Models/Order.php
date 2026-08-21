@@ -49,6 +49,8 @@ class Order extends Model
         'payment_method_id',
         'payment_method_name',
         'payment_status',
+        'stripe_payment_intent_id',
+        'stripe_client_secret',
     ];
 
     public function user()

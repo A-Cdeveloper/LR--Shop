@@ -10,10 +10,12 @@ use App\Mail\OrderPlacedMail;
 use App\Models\DeliveryMethod;
 use App\Models\Order;
 use App\Models\PaymentMethod;
+use App\Models\Product;
 use App\Models\Setting;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use App\Services\StripePaymentService;
 
 class OrderController extends Controller
 {
@@ -144,12 +146,63 @@ class OrderController extends Controller
         });
 
 
-        Mail::to($user->email)->send(new OrderPlacedMail($order->load('items')));
+        if ($paymentMethod->key === 'stripe') {
+            try {
+                $intent = app(StripePaymentService::class)->createPaymentIntent($order);
 
-        return (new OrderResource($order->load('items')))
-            ->additional([
-                'message' => __('api.orders.placed'),
-            ])
+                $order->update([
+                    'stripe_payment_intent_id' => $intent['id'],
+                    'stripe_client_secret' => $intent['client_secret'],
+                ]);
+            } catch (\Throwable $e) {
+                report($e);
+
+                DB::transaction(function () use ($order) {
+                    $order->load('items');
+
+                    foreach ($order->items as $item) {
+                        $product = Product::query()
+                            ->whereKey($item->product_id)
+                            ->lockForUpdate()
+                            ->first();
+
+                        if ($product) {
+                            $product->increment('stock', $item->quantity);
+                        }
+                    }
+
+                    $order->update([
+                        'status' => 'failed',
+                        'payment_status' => 'failed',
+                    ]);
+                });
+
+                return response()->json([
+                    'message' => __('api.orders.payment_failed'),
+                ], 502);
+            }
+        }
+
+
+
+        if ($paymentMethod->key !== 'stripe') {
+            Mail::to($user->email)->send(new OrderPlacedMail($order->load('items')));
+        }
+
+
+        // refresh the order to get the updated data
+        $order = $order->fresh()->load('items');
+        // additional data to be returned to the client
+        $additional = [
+            'message' => __('api.orders.placed'),
+        ];
+        // if the payment method is stripe, return the client secret
+        if ($paymentMethod->key === 'stripe') {
+            $additional['client_secret'] = $order->stripe_client_secret;
+        }
+
+        return (new OrderResource($order))
+            ->additional($additional)
             ->response()
             ->setStatusCode(201);
     }
