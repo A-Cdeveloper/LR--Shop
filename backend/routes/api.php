@@ -20,6 +20,8 @@ use App\Http\Controllers\Api\V1\Admin\AdminUserController;
 use App\Http\Controllers\Api\V1\Auth\EmailVerificationController;
 use App\Http\Controllers\Api\V1\DeliveryMethodController;
 use App\Http\Controllers\Api\V1\Admin\AdminDeliveryMethodController;
+use App\Http\Controllers\Api\V1\Admin\AdminPaymentMethodController;
+use App\Http\Controllers\Api\V1\PaymentMethodController;
 
 // Public
 Route::prefix('v1')->group(function () {
@@ -33,6 +35,7 @@ Route::prefix('v1')->group(function () {
     Route::delete('cart/items/{cartItem}', [CartItemController::class, 'destroy']);
 
     Route::get('delivery-methods', [DeliveryMethodController::class, 'index']);
+    Route::get('payment-methods', [PaymentMethodController::class, 'index']);
 
     Route::post('register', [AuthController::class, 'register']);
     Route::get('email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
@@ -85,4 +88,5 @@ Route::middleware(['auth:sanctum', 'admin', 'throttle:api'])
         Route::patch('settings', [AdminSettingController::class, 'update'])->name('settings.update');
 
         Route::apiResource('delivery-methods', AdminDeliveryMethodController::class);
+        Route::apiResource('payment-methods', AdminPaymentMethodController::class);
     });
