@@ -24,6 +24,13 @@ class Order extends Model
         ...self::STOCK_RELEASED_STATUSES,
     ];
 
+    public const PAYMENT_STATUSES = [
+        'pending',
+        'paid',
+        'failed',
+        'refunded',
+    ];
+
     protected $fillable = [
         'user_id',
         'status',
@@ -41,6 +48,7 @@ class Order extends Model
         'delivery_price',
         'payment_method_id',
         'payment_method_name',
+        'payment_status',
     ];
 
     public function user()

@@ -124,6 +124,7 @@ class OrderController extends Controller
                 'delivery_price' => $deliveryPrice,
                 'payment_method_id' => $paymentMethod->id,
                 'payment_method_name' => $paymentMethod->name,
+                'payment_status' => 'pending',
                 ...$orderData,
             ]);
 

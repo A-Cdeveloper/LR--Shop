@@ -57,36 +57,48 @@ class AdminOrderController extends Controller
      */
     public function update(UpdateOrderStatusRequest $request, Order $order)
     {
-        $newStatus = $request->validated('status');
+        $data = $request->validated();
         $oldStatus = $order->status;
 
-        if ($newStatus === $oldStatus) {
+        $statusChanged = array_key_exists('status', $data)
+            && $data['status'] !== $order->status;
+
+        $paymentStatusChanged = array_key_exists('payment_status', $data)
+            && $data['payment_status'] !== $order->payment_status;
+
+        if (! $statusChanged && ! $paymentStatusChanged) {
             return (new OrderResource($order->load('items')))
                 ->additional(['message' => __('api.orders.status_updated')]);
         }
 
-        DB::transaction(function () use ($order, $newStatus, $oldStatus) {
-            if ($this->shouldRestoreStock($oldStatus, $newStatus)) {
-                $order->load('items');
+        DB::transaction(function () use ($order, $data, $statusChanged, $oldStatus) {
+            if ($statusChanged) {
+                $newStatus = $data['status'];
 
-                foreach ($order->items as $item) {
-                    $product = Product::query()
-                        ->whereKey($item->product_id)
-                        ->lockForUpdate()
-                        ->first();
+                if ($this->shouldRestoreStock($oldStatus, $newStatus)) {
+                    $order->load('items');
 
-                    if ($product) {
-                        $product->increment('stock', $item->quantity);
+                    foreach ($order->items as $item) {
+                        $product = Product::query()
+                            ->whereKey($item->product_id)
+                            ->lockForUpdate()
+                            ->first();
+
+                        if ($product) {
+                            $product->increment('stock', $item->quantity);
+                        }
                     }
                 }
             }
 
-            $order->update(['status' => $newStatus]);
+            $order->update(collect($data)->only(['status', 'payment_status'])->all());
         });
 
         $order = $order->fresh()->load('items');
 
-        Mail::to($order->user->email)->send(new OrderStatusMail($order, $oldStatus));
+        if ($statusChanged) {
+            Mail::to($order->user->email)->send(new OrderStatusMail($order, $oldStatus));
+        }
 
         return (new OrderResource($order))
             ->additional(['message' => __('api.orders.status_updated')]);
