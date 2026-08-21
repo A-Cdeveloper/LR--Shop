@@ -11,6 +11,7 @@ class PaymentMethod extends Model
         'name',
         'description',
         'is_active',
+        'key',
     ];
 
     protected function casts(): array

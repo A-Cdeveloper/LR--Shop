@@ -10,16 +10,18 @@ class PaymentMethodSeeder extends Seeder
     public function run(): void
     {
         PaymentMethod::query()->updateOrCreate(
-            ['name' => 'Cash on delivery'],
+            ['key' => 'cash_on_delivery'],
             [
+                'name' => 'Cash on delivery',
                 'description' => 'Pay when you receive your order',
                 'is_active' => true,
             ],
         );
 
         PaymentMethod::query()->updateOrCreate(
-            ['name' => 'Stripe'],
+            ['key' => 'stripe'],
             [
+                'name' => 'Stripe',
                 'description' => 'Pay securely with Stripe',
                 'is_active' => true,
             ],

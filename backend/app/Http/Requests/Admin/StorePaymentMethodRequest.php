@@ -26,6 +26,7 @@ class StorePaymentMethodRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
             'is_active' => ['sometimes', 'boolean'],
+            'key' => ['required', 'string', 'max:50', 'alpha_dash', 'unique:payment_methods,key'],
         ];
     }
 }

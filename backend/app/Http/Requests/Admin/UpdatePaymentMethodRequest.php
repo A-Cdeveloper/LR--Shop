@@ -26,6 +26,14 @@ class UpdatePaymentMethodRequest extends FormRequest
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string', 'max:1000'],
             'is_active' => ['sometimes', 'boolean'],
+            'key' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:50',
+                'alpha_dash',
+                'unique:payment_methods,key,' . $this->route('payment_method')->id,
+            ],
         ];
     }
 }
