@@ -16,5 +16,5 @@ Your order status has changed from {{ $oldStatus }} to {{ $order->status }}.
 **Total:** {{ number_format($order->total, 2) }} {{ $order->currency }}
 
 Thanks,<br>
-{{ config('app.name') }}
+{{ \App\Models\Setting::get('shop.name', config('app.name')) }}
 </x-mail::message>

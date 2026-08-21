@@ -315,7 +315,7 @@ Shipping is taken from the **user profile** when the body is empty. Body fields 
 
 **Detail / create response fields:** `id`, `status`, `total`, `currency`, delivery snapshot fields, address fields, `items` (`product_id`, `product_name`, `price`, `quantity`, `subtotal`), timestamps
 
-Successful create also returns `"message": "Order placed successfully."` and status **201**. Empty cart → **422**. Not enough stock → **422**; product `stock` is decremented inside a transaction (`lockForUpdate`). An order confirmation email is sent to the user's address (Mailpit locally) with order number, total + currency, items, delivery, and shipping address.
+Successful create also returns `"message": "Order placed successfully."` and status **201**. Empty cart → **422**. Not enough stock → **422**; product `stock` is decremented inside a transaction (`lockForUpdate`). An order confirmation email is sent to the user's address (Mailpit locally) with: item table (product, qty, unit price, subtotal), then a separate totals block (subtotal, delivery, total) with currency, shipping address, and shop name from settings (`shop.name`).
 
 ### Admin
 
