@@ -39,6 +39,8 @@ class Order extends Model
         'delivery_method_id',
         'delivery_method_name',
         'delivery_price',
+        'payment_method_id',
+        'payment_method_name',
     ];
 
     public function user()
@@ -54,6 +56,11 @@ class Order extends Model
     public function deliveryMethod()
     {
         return $this->belongsTo(DeliveryMethod::class);
+    }
+
+    public function paymentMethod()
+    {
+        return $this->belongsTo(PaymentMethod::class);
     }
 
     public function scopeFilterStatus(Builder $query, ?string $status): Builder

@@ -30,6 +30,8 @@ class OrderResource extends JsonResource
             'delivery_method_id' => $this->delivery_method_id,
             'delivery_method_name' => $this->delivery_method_name,
             'delivery_price' => $this->delivery_price,
+            'payment_method_id' => $this->payment_method_id,
+            'payment_method_name' => $this->payment_method_name,
 
         ];
     }

@@ -51,6 +51,7 @@ class StoreOrderRequest extends FormRequest
             'zip' => ['required', 'string', 'max:20'],
             'country' => ['required', 'string', 'max:100'],
             'delivery_method_id' => ['required', 'exists:delivery_methods,id'],
+            'payment_method_id' => ['required', 'exists:payment_methods,id'],
         ];
     }
 }

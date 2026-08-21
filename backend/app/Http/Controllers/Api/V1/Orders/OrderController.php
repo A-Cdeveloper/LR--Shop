@@ -9,6 +9,7 @@ use App\Http\Resources\Orders\OrderSummaryResource;
 use App\Mail\OrderPlacedMail;
 use App\Models\DeliveryMethod;
 use App\Models\Order;
+use App\Models\PaymentMethod;
 use App\Models\Setting;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -69,7 +70,20 @@ class OrderController extends Controller
         }
 
 
-        $order = DB::transaction(function () use ($orderData, $user, $cart, $deliveryMethod) {
+        $paymentMethod = PaymentMethod::query()
+            ->whereKey($orderData['payment_method_id'])
+            ->where('is_active', true)
+            ->first();
+
+        if (! $paymentMethod) {
+            return response()->json([
+                'message' => __('api.orders.invalid_payment_method'),
+            ], 422);
+        }
+
+
+
+        $order = DB::transaction(function () use ($orderData, $user, $cart, $deliveryMethod, $paymentMethod) {
 
 
             foreach ($cart->items as $item) {
@@ -108,6 +122,8 @@ class OrderController extends Controller
                 'delivery_method_id' => $deliveryMethod->id,
                 'delivery_method_name' => $deliveryMethod->name,
                 'delivery_price' => $deliveryPrice,
+                'payment_method_id' => $paymentMethod->id,
+                'payment_method_name' => $paymentMethod->name,
                 ...$orderData,
             ]);
 

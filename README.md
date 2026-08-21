@@ -26,6 +26,7 @@ Implemented:
 - User carts (`user_id`) and guest cart merge on login/register
 - Orders API (checkout, list, show — auth required; shipping from profile)
 - Delivery methods (public list + admin CRUD); checkout requires `delivery_method_id` with price/`free_over` snapshot
+- Payment methods (public list + admin CRUD); checkout requires `payment_method_id` with name snapshot (Cash on delivery / Stripe placeholder; real Stripe later)
 - Order currency snapshot from `shop.currency` settings at checkout
 - Order confirmation email on checkout (Mailpit locally)
 - Order status change email to customer when admin updates status (Mailpit locally)
@@ -35,7 +36,7 @@ Implemented:
 - Clear cart (`DELETE /cart`)
 - User roles (`customer` / `admin`) and admin middleware
 - User `is_active` flag; inactive users cannot log in
-- Admin uploads, category CRUD, product CRUD, order status, user management, shop settings, and delivery methods
+- Admin uploads, category CRUD, product CRUD, order status, user management, shop settings, delivery methods, and payment methods
 - Product stock: cart cannot exceed stock; checkout decrements; cancel/fail/refund restores
 - Category, product, and cart seed data
 - API Resources for JSON responses
@@ -282,6 +283,18 @@ Public list of **active** delivery options (no auth). Used at checkout.
 
 Seeded defaults: **Pickup in store** (`price` 0) and **Delivery to address** (`price` 500, free when cart subtotal ≥ `free_over` 5000).
 
+### Payment methods
+
+Public list of **active** payment options (no auth). Used at checkout. Any active payment method may be combined with any active delivery method (no pairing rules yet).
+
+| Method | Endpoint | Description |
+| ------ | -------- | ----------- |
+| GET | `/payment-methods` | Active payment methods |
+
+**Fields:** `id`, `name`, `description`, `is_active`
+
+Seeded defaults: **Cash on delivery** and **Stripe** (selection only for now; Stripe charge/webhook later).
+
 ### Orders
 
 Logged-in users only (`auth:sanctum`). Guest checkout is **not** supported — login/register first (cart merge applies). Checkout builds the order from the **user cart**, then clears cart items.
@@ -289,18 +302,19 @@ Logged-in users only (`auth:sanctum`). Guest checkout is **not** supported — l
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/orders` | Place order from current cart |
-| GET | `/orders` | List my orders (summary) |
+| GET | `/orders` | List my orders (summary, paginated) |
 | GET | `/orders/{id}` | Order detail (own orders only) |
 
 Shipping is taken from the **user profile** when the body is empty. Body fields override profile. Incomplete profile (missing phone/address) → **422**. `customer_phone` must be E.164 (same as profile); spaces/dashes are stripped.
 
-`delivery_method_id` is **required**. Must exist and be active; otherwise **422**. Checkout snapshots `delivery_method_name`, `delivery_price` (0 if subtotal ≥ `free_over`), and `currency` from settings (`shop.currency`, default `EUR`). Order `total` = cart subtotal + `delivery_price`.
+`delivery_method_id` and `payment_method_id` are **required**. Both must exist and be active; otherwise **422**. Checkout snapshots `delivery_method_name`, `delivery_price` (0 if subtotal ≥ `free_over`), `payment_method_name`, and `currency` from settings (`shop.currency`, default `EUR`). Order `total` = cart subtotal + `delivery_price`.
 
-**POST `/orders` body** (`delivery_method_id` required; shipping optional if profile is complete):
+**POST `/orders` body** (`delivery_method_id` and `payment_method_id` required; shipping optional if profile is complete):
 
 ```json
 {
   "delivery_method_id": 2,
+  "payment_method_id": 1,
   "customer_name": "Ana Anic",
   "customer_phone": "+381641234567",
   "shipping_address": "Bulevar 1",
@@ -311,11 +325,11 @@ Shipping is taken from the **user profile** when the body is empty. Body fields 
 }
 ```
 
-**List (`GET /orders`) fields:** `id`, `status`, `total`, `currency`, `items_count`, `delivery_method_name`, `created_at`
+**List (`GET /orders`) fields:** `id`, `status`, `total`, `currency`, `items_count`, `delivery_method_name`, `payment_method_name`, `created_at`
 
-**Detail / create response fields:** `id`, `status`, `total`, `currency`, delivery snapshot fields, address fields, `items` (`product_id`, `product_name`, `price`, `quantity`, `subtotal`), timestamps
+**Detail / create response fields:** `id`, `status`, `total`, `currency`, delivery + payment snapshot fields, address fields, `items` (`product_id`, `product_name`, `price`, `quantity`, `subtotal`), timestamps
 
-Successful create also returns `"message": "Order placed successfully."` and status **201**. Empty cart → **422**. Not enough stock → **422**; product `stock` is decremented inside a transaction (`lockForUpdate`). An order confirmation email is sent to the user's address (Mailpit locally) with: item table (product, qty, unit price, subtotal), then a separate totals block (subtotal, delivery, total) with currency, shipping address, and shop name from settings (`shop.name`).
+Successful create also returns `"message": "Order placed successfully."` and status **201**. Empty cart → **422**. Not enough stock → **422**; product `stock` is decremented inside a transaction (`lockForUpdate`). An order confirmation email is sent to the user's address (Mailpit locally) with: item table (product, qty, unit price, subtotal), then a separate totals block (subtotal, delivery, total) with currency, payment method, shipping address, and shop name from settings (`shop.name`).
 
 ### Admin
 
@@ -415,6 +429,20 @@ Customer → **403**.
 | DELETE | `/delivery-methods/{id}` | Delete (`204`) |
 
 **Create/update body:** `name`, `description` (nullable), `price`, `free_over` (nullable), `eta_days_min` / `eta_days_max` (nullable), `is_active` (optional).
+
+Customer → **403**.
+
+#### Payment methods
+
+| Method | Endpoint | Description |
+| ------ | -------- | ----------- |
+| GET | `/payment-methods` | List all methods (including inactive) |
+| POST | `/payment-methods` | Create |
+| GET | `/payment-methods/{id}` | Show |
+| PUT/PATCH | `/payment-methods/{id}` | Update (partial with `PATCH`) |
+| DELETE | `/payment-methods/{id}` | Delete (`204`) |
+
+**Create/update body:** `name`, `description` (nullable), `is_active` (optional).
 
 Customer → **403**.
 

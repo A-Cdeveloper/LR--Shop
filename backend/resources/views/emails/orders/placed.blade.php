@@ -42,6 +42,7 @@ We received your order.
 </table>
 
 <p style="margin: 28px 0;">
+Payment: {{ $order->payment_method_name }}<br>
 Shipping: {{ $order->shipping_address }}, {{ $order->city }}, {{ $order->zip }}, {{ $order->country }}
 </p>
 
