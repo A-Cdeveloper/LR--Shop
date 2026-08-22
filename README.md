@@ -28,7 +28,7 @@ Implemented:
 - Delivery methods (public list + admin CRUD); checkout requires `delivery_method_id` with price/`free_over` snapshot
 - Payment methods (public list + admin CRUD); checkout requires `payment_method_id` with name snapshot; methods have a stable `key` (`cash_on_delivery`, `stripe`)
 - Order `payment_status` (`pending` / `paid` / `failed` / `refunded`); checkout starts as `pending`; admin can update via order PATCH
-- Stripe test payments: PaymentIntent on checkout (`client_secret`); webhook marks `paid` (+ email) or `failed`
+- Stripe test payments: PaymentIntent on checkout (`client_secret`); webhook marks `paid` (+ email) or `failed`; admin full refund via Stripe API
 - Order currency snapshot from `shop.currency` settings at checkout
 - Order confirmation email (COD on checkout; Stripe after successful payment — Mailpit locally)
 - Order status change email to customer when admin updates fulfillment `status` (Mailpit locally)
@@ -305,7 +305,7 @@ Public endpoint (no auth). Stripe CLI locally: `stripe listen --forward-to local
 | ------ | -------- | ----------- |
 | POST | `/stripe/webhook` | Stripe events (signature verified) |
 
-On `payment_intent.succeeded`, the order from Intent metadata `order_id` gets `payment_status: paid` and the confirmation email is sent. On `payment_intent.payment_failed`, a still-`pending` order is set to `payment_status: failed` (no email).
+On `payment_intent.succeeded`, the order from Intent metadata `order_id` gets `payment_status: paid` and the confirmation email is sent. On `payment_intent.payment_failed`, a still-`pending` order is set to `payment_status: failed` (no email). On `charge.refunded`, `payment_status` is set to `refunded` if not already (Dashboard refunds; admin API refund also updates the order directly).
 
 Env: `STRIPE_KEY`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET` (see `.env.example`).
 
@@ -417,6 +417,7 @@ Admins see **all** orders. Checkout stays on the customer API (`POST /orders`). 
 | GET | `/orders` | Paginated list of all orders |
 | GET | `/orders/{id}` | Order detail (any order) |
 | PUT/PATCH | `/orders/{id}` | Update `status` and/or `payment_status` |
+| POST | `/orders/{id}/refund` | Full Stripe refund (paid Stripe orders only) |
 
 **Query (`GET /orders`):** `per_page` (1–50, default 10), `status` (one of the fulfillment values below), `sort` (`total` \| `created_at`), `order` (`asc` \| `desc`). Invalid `status` → **422**.
 
@@ -425,6 +426,8 @@ Admins see **all** orders. Checkout stays on the customer API (`POST /orders`). 
 **Payment statuses:** `pending`, `paid`, `failed`, `refunded`. New checkouts start as `pending` (COD stays pending until admin marks `paid`; Stripe updates to `paid` via webhook).
 
 Moving an order from a held fulfillment status (`pending`, `completed`) to `cancelled`, `failed`, or `refunded` **restores** product stock. The same status again does not double-restore. Changing fulfillment `status` sends an email to the customer (Mailpit locally) with the old/new status, item table, totals, payment, and shipping (same layout as the placed email). Changing only `payment_status` does **not** send email.
+
+**POST `/orders/{id}/refund`:** only when `payment_status` is `paid` and the order has a `stripe_payment_intent_id`. Creates a full Stripe refund, sets `status` + `payment_status` to `refunded`, restores stock, and sends the status-change email. Not allowed / not Stripe paid → **422**. Stripe API error → **502**. Partial refunds are not supported.
 
 **PATCH body** (at least one of `status` or `payment_status` required):
 

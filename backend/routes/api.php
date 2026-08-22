@@ -82,6 +82,7 @@ Route::middleware(['auth:sanctum', 'admin', 'throttle:api'])
         Route::apiResource('categories', AdminCategoryController::class);
         Route::apiResource('products', AdminProductController::class);
         Route::apiResource('orders', AdminOrderController::class)->only(['index', 'show', 'update']);
+        Route::post('orders/{order}/refund', [AdminOrderController::class, 'refund']);
 
         Route::apiResource('users', AdminUserController::class)->only(['index', 'show', 'update']);
 

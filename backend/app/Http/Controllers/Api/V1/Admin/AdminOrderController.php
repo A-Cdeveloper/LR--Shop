@@ -8,8 +8,10 @@ use App\Http\Resources\Orders\OrderResource;
 use App\Mail\OrderStatusMail;
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\StripePaymentService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 class AdminOrderController extends Controller
 {
@@ -104,6 +106,63 @@ class AdminOrderController extends Controller
             ->additional(['message' => __('api.orders.status_updated')]);
     }
 
+    /**
+     * Refund the specified resource in storage.
+     */
+    public function refund(Order $order)
+    {
+        if (
+            $order->payment_status !== 'paid'
+            || blank($order->stripe_payment_intent_id)
+        ) {
+            return response()->json([
+                'message' => __('api.orders.refund_not_allowed'),
+            ], 422);
+        }
+
+        try {
+            app(StripePaymentService::class)->refund($order);
+        } catch (Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'message' => __('api.orders.refund_failed'),
+            ], 502);
+        }
+
+        $oldStatus = $order->status;
+
+        DB::transaction(function () use ($order, $oldStatus) {
+            if ($this->shouldRestoreStock($oldStatus, 'refunded')) {
+                $order->load('items');
+
+                foreach ($order->items as $item) {
+                    $product = Product::query()
+                        ->whereKey($item->product_id)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($product) {
+                        $product->increment('stock', $item->quantity);
+                    }
+                }
+            }
+
+            $order->update([
+                'status' => 'refunded',
+                'payment_status' => 'refunded',
+            ]);
+        });
+
+        $order = $order->fresh()->load('items');
+
+        Mail::to($order->user->email)->send(new OrderStatusMail($order, $oldStatus));
+
+        return (new OrderResource($order))
+            ->additional(['message' => __('api.orders.refunded')]);
+    }
+
+    // Private methods
     private function shouldRestoreStock(string $from, string $to): bool
     {
         return in_array($from, Order::STOCK_HELD_STATUSES, true)

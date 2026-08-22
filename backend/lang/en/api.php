@@ -41,6 +41,9 @@ return [
         'invalid_delivery_method' => 'Invalid or inactive delivery method.',
         'invalid_payment_method' => 'Invalid or inactive payment method.',
         'payment_failed' => 'Could not start payment. Please try again.',
+        'refunded' => 'Order refunded successfully.',
+        'refund_not_allowed' => 'Only paid Stripe orders can be refunded.',
+        'refund_failed' => 'Could not refund payment. Please try again.',
     ],
 
     'admin' => [

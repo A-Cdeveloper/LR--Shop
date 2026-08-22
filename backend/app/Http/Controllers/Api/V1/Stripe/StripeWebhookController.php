@@ -32,12 +32,16 @@ class StripeWebhookController extends Controller
         match ($event->type) {
             'payment_intent.succeeded' => $this->handlePaymentSucceeded($event),
             'payment_intent.payment_failed' => $this->handlePaymentFailed($event),
+            'charge.refunded' => $this->handleChargeRefunded($event),
             default => null,
         };
 
         return response()->json(['received' => true]);
     }
 
+    /**
+     * Handle the payment succeeded event.
+     */
     private function handlePaymentSucceeded(Event $event): void
     {
         $order = $this->orderFromPaymentIntent($event);
@@ -53,6 +57,9 @@ class StripeWebhookController extends Controller
         );
     }
 
+    /**
+     * Handle the payment failed event.
+     */
     private function handlePaymentFailed(Event $event): void
     {
         $order = $this->orderFromPaymentIntent($event);
@@ -63,6 +70,30 @@ class StripeWebhookController extends Controller
 
         $order->update(['payment_status' => 'failed']);
     }
+
+    /**
+     * Handle the charge refunded event.
+     */
+    private function handleChargeRefunded(Event $event): void
+    {
+        $charge = $event->data->object;
+        $paymentIntentId = $charge->payment_intent ?? null;
+
+        if (! $paymentIntentId) {
+            return;
+        }
+
+        $order = Order::query()
+            ->where('stripe_payment_intent_id', $paymentIntentId)
+            ->first();
+
+        if (! $order || $order->payment_status === 'refunded') {
+            return;
+        }
+
+        $order->update(['payment_status' => 'refunded']);
+    }
+
 
     private function orderFromPaymentIntent(Event $event): ?Order
     {
