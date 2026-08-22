@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\V1\DeliveryMethodController;
 use App\Http\Controllers\Api\V1\Admin\AdminDeliveryMethodController;
 use App\Http\Controllers\Api\V1\Admin\AdminPaymentMethodController;
 use App\Http\Controllers\Api\V1\PaymentMethodController;
+use App\Http\Controllers\Api\V1\Stripe\StripeWebhookController;
 
 // Public
 Route::prefix('v1')->group(function () {
@@ -36,6 +37,7 @@ Route::prefix('v1')->group(function () {
 
     Route::get('delivery-methods', [DeliveryMethodController::class, 'index']);
     Route::get('payment-methods', [PaymentMethodController::class, 'index']);
+    Route::post('stripe/webhook', [StripeWebhookController::class, 'handle']);
 
     Route::post('register', [AuthController::class, 'register']);
     Route::get('email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
