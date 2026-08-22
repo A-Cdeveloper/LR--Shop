@@ -11,6 +11,7 @@ class OrderItem extends Model
         'product_id',
         'product_name',
         'price',
+        'original_price',
         'quantity',
         'subtotal',
         'tax_name',

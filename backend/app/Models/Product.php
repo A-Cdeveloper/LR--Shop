@@ -5,13 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Tax;
 
 class Product extends Model
 {
 
     use HasFactory;
 
-    protected $fillable = ['category_id', "tax_id", 'name', 'slug', 'description', 'price', 'stock', 'image', 'is_active'];
+    protected $fillable = ['category_id', "tax_id", 'name', 'slug', 'description', 'price', 'sale_price', 'stock', 'image', 'is_active'];
 
     /**
      * Get the route key for the model.
@@ -36,6 +37,25 @@ class Product extends Model
     {
         return $this->belongsTo(Tax::class);
     }
+
+    /**
+     * Check if the product is on sale.
+     */
+    public function onSale(): bool
+    {
+        return $this->sale_price !== null
+            && (float) $this->sale_price < (float) $this->price;
+    }
+    /**
+     * Get the effective price of the product.
+     */
+    public function effectivePrice(): float
+    {
+        return $this->onSale()
+            ? (float) $this->sale_price
+            : (float) $this->price;
+    }
+
 
     /**
      * Scope a query to only include active products.

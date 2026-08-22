@@ -28,6 +28,7 @@ class StoreProductRequest extends FormRequest
             'slug' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', 'unique:products,slug'],
             'description' => ['nullable', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
+            'sale_price' => ['nullable', 'numeric', 'min:0', 'lt:price'],
             'tax_id' => ['nullable', 'integer', 'exists:taxes,id'],
             'stock' => ['required', 'integer', 'min:0'],
             'image' => ['nullable', 'string', 'max:255'],

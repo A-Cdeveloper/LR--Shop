@@ -100,7 +100,7 @@ class OrderController extends Controller
             }
 
             $total = $cart->items->sum(function ($item) {
-                return $item->quantity * $item->product->price;
+                return $item->quantity * $item->product->effectivePrice();
             });
 
 
@@ -138,7 +138,8 @@ class OrderController extends Controller
             ]);
 
             foreach ($cart->items as $item) {
-                $subtotal = round($item->quantity * $item->product->price, 2);
+                $unitPrice = $item->product->effectivePrice();
+                $subtotal = round($item->quantity * $unitPrice, 2);
 
                 $tax = $item->product->tax ?? $defaultTax;
                 $taxRate = $tax ? (float) $tax->rate : 0;
@@ -150,7 +151,10 @@ class OrderController extends Controller
                 $order->items()->create([
                     'product_id' => $item->product_id,
                     'product_name' => $item->product->name,
-                    'price' => $item->product->price,
+                    'price' => $unitPrice,
+                    'original_price' => $item->product->onSale()
+                        ? (float) $item->product->price
+                        : null,
                     'quantity' => $item->quantity,
                     'subtotal' => $subtotal,
                     'tax_name' => $taxName,

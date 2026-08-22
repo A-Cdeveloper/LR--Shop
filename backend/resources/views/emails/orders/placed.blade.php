@@ -19,7 +19,14 @@
             <tr>
                 <td style="border-bottom: 1px solid #edeff2; padding: 8px 0; font-weight:bold;">{{ $item->product_name }}</td>
                 <td align="right" style="border-bottom: 1px solid #edeff2; padding: 8px 0;">{{ $item->quantity }}</td>
-                <td align="right" style="border-bottom: 1px solid #edeff2; padding: 8px 0;">{{ number_format($item->price, 2) }} {{ $order->currency }}</td>
+                <td align="right" style="border-bottom: 1px solid #edeff2; padding: 8px 0;">
+                    @if ($item->original_price)
+                        <s>{{ number_format($item->original_price, 2) }} {{ $order->currency }}</s>
+                        {{ number_format($item->price, 2) }} {{ $order->currency }}
+                    @else
+                        {{ number_format($item->price, 2) }} {{ $order->currency }}
+                    @endif
+                </td>
                 <td align="right" style="border-bottom: 1px solid #edeff2; padding: 8px 0;">{{ number_format($item->subtotal, 2) }} {{ $order->currency }}</td>
             </tr>
         @endforeach

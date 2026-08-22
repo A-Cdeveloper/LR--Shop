@@ -31,6 +31,7 @@ Implemented:
 - Stripe test payments: PaymentIntent on checkout (`client_secret`); webhook marks `paid` (+ email) or `failed`; admin full refund via Stripe API
 - Order currency snapshot from `shop.currency` settings at checkout
 - Taxes (admin CRUD); products optional `tax_id`; checkout snapshots inclusive VAT on items / order (`tax_amount`) without changing `total`
+- Product `sale_price` (optional); cart/checkout use effective price; order items snapshot `original_price` for email strikethrough
 - Order confirmation email (COD on checkout; Stripe after successful payment — Mailpit locally)
 - Order status change email to customer when admin updates fulfillment `status` (Mailpit locally)
 - CORS configured via `FRONTEND_URL` env variable (default `http://localhost:5173`)
@@ -84,7 +85,9 @@ Supported: `en`, `sr`. Product/category content is not translated.
 | GET    | `/products`        | List active products (paginated) |
 | GET    | `/products/{slug}` | Single product                   |
 
-**Product fields:** `id`, `name`, `slug`, `description`, `price`, `stock`, `image`, `is_active`, `created_at`, `updated_at`, `category`, `tax_id`, `tax` (`id`, `name`, `rate` when loaded)
+**Product fields:** `id`, `name`, `slug`, `description`, `price`, `sale_price`, `effective_price`, `on_sale`, `stock`, `image`, `is_active`, `created_at`, `updated_at`, `category`, `tax_id`, `tax` (`id`, `name`, `rate` when loaded)
+
+`sale_price` is optional. When set and lower than `price`, `on_sale` is true and `effective_price` is `sale_price`; otherwise `effective_price` equals `price`. Cart and checkout charge `effective_price`.
 
 **Query parameters (index only):**
 
@@ -357,7 +360,7 @@ If the payment method `key` is `stripe`, checkout also creates a Stripe PaymentI
 
 **List (`GET /orders`) fields:** `id`, `status`, `total`, `currency`, `items_count`, `delivery_method_name`, `payment_method_name`, `payment_status`, `created_at`
 
-**Detail / create response fields:** `id`, `status`, `total`, `tax_amount`, `currency`, delivery + payment snapshot fields (including `payment_status`), address fields, `items` (`product_id`, `product_name`, `price`, `quantity`, `subtotal`, `tax_name`, `tax_rate`, `tax_amount`), timestamps
+**Detail / create response fields:** `id`, `status`, `total`, `tax_amount`, `currency`, delivery + payment snapshot fields (including `payment_status`), address fields, `items` (`product_id`, `product_name`, `price`, `original_price` nullable when purchased on sale, `quantity`, `subtotal`, `tax_name`, `tax_rate`, `tax_amount`), timestamps
 
 Successful create also returns `"message": "Order placed successfully."` and status **201**. Empty cart → **422**. Not enough stock → **422**; product `stock` is decremented inside a transaction (`lockForUpdate`). For COD, an order confirmation email is sent immediately (Mailpit locally). For Stripe, the same email style is sent after payment succeeds (webhook).
 
@@ -418,7 +421,7 @@ Flow: upload → copy `path` → send as `image` on create/update category (JSON
 
 **Query (`GET /products`):** same as public shop — `category`, `search`, `per_page`, `sort` (`name` \| `price` \| `created_at`), `order`.
 
-**Create/update body (JSON):** `category_id`, `name`, `slug`, `description` (nullable), `price`, `tax_id` (nullable; falls back to default tax at checkout), `stock`, `image` (nullable path from uploads with `folder=products`), `is_active` (optional boolean).
+**Create/update body (JSON):** `category_id`, `name`, `slug`, `description` (nullable), `price`, `sale_price` (nullable; must be less than `price`), `tax_id` (nullable; falls back to default tax at checkout), `stock`, `image` (nullable path from uploads with `folder=products`), `is_active` (optional boolean).
 
 Deleting a product removes it from carts; order items keep `product_name` and set `product_id` to null. Image files stay on disk.
 
