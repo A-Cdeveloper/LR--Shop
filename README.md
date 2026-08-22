@@ -33,6 +33,7 @@ Implemented:
 - Order confirmation email (COD on checkout; Stripe after successful payment — Mailpit locally)
 - Order status change email to customer when admin updates fulfillment `status` (Mailpit locally)
 - CORS configured via `FRONTEND_URL` env variable (default `http://localhost:5173`)
+- API locale: `en` (default) and `sr` via `Accept-Language` or `?lang=sr` (`lang/sr/api.php`)
 - Profile API (GET/PATCH/DELETE — hard delete; admins blocked)
 - E.164 phone validation on profile and checkout
 - Clear cart (`DELETE /cart`)
@@ -53,6 +54,17 @@ Planned:
 ## API
 
 Base URL: `http://localhost:8000/api/v1`
+
+### Locale
+
+API `message` strings use Laravel lang files (`lang/en/api.php`, `lang/sr/api.php`).
+
+| How | Example |
+| --- | ------- |
+| Header | `Accept-Language: sr` |
+| Query | `?lang=sr` |
+
+Supported: `en`, `sr`. Default: `APP_LOCALE` (usually `en`). Product/category content is not translated.
 
 ### Categories
 
