@@ -30,6 +30,7 @@ Implemented:
 - Order `payment_status` (`pending` / `paid` / `failed` / `refunded`); checkout starts as `pending`; admin can update via order PATCH
 - Stripe test payments: PaymentIntent on checkout (`client_secret`); webhook marks `paid` (+ email) or `failed`; admin full refund via Stripe API
 - Order currency snapshot from `shop.currency` settings at checkout
+- Taxes (admin CRUD); products optional `tax_id`; checkout snapshots inclusive VAT on items / order (`tax_amount`) without changing `total`
 - Order confirmation email (COD on checkout; Stripe after successful payment — Mailpit locally)
 - Order status change email to customer when admin updates fulfillment `status` (Mailpit locally)
 - CORS configured via `FRONTEND_URL` env variable (default `http://localhost:5173`)
@@ -39,7 +40,7 @@ Implemented:
 - Clear cart (`DELETE /cart`)
 - User roles (`customer` / `admin`) and admin middleware
 - User `is_active` flag; inactive users cannot log in
-- Admin uploads, category CRUD, product CRUD, order status / payment status, user management, shop settings, delivery methods, and payment methods
+- Admin uploads, category CRUD, product CRUD, order status / payment status, user management, shop settings, delivery methods, payment methods, and taxes
 - Product stock: cart cannot exceed stock; checkout decrements; cancel/fail/refund restores
 - Category, product, and cart seed data
 - API Resources for JSON responses
@@ -83,7 +84,7 @@ Supported: `en`, `sr`. Product/category content is not translated.
 | GET    | `/products`        | List active products (paginated) |
 | GET    | `/products/{slug}` | Single product                   |
 
-**Product fields:** `id`, `name`, `slug`, `description`, `price`, `stock`, `image`, `is_active`, `created_at`, `updated_at`, `category`
+**Product fields:** `id`, `name`, `slug`, `description`, `price`, `stock`, `image`, `is_active`, `created_at`, `updated_at`, `category`, `tax_id`, `tax` (`id`, `name`, `rate` when loaded)
 
 **Query parameters (index only):**
 
@@ -334,7 +335,7 @@ Logged-in users only (`auth:sanctum`). Guest checkout is **not** supported — l
 
 Shipping is taken from the **user profile** when the body is empty. Body fields override profile. Incomplete profile (missing phone/address) → **422**. `customer_phone` must be E.164 (same as profile); spaces/dashes are stripped.
 
-`delivery_method_id` and `payment_method_id` are **required**. Both must exist and be active; otherwise **422**. Checkout snapshots `delivery_method_name`, `delivery_price` (0 if subtotal ≥ `free_over`), `payment_method_name`, `payment_status` (`pending`), and `currency` from settings (`shop.currency`, default `EUR`). Order `total` = cart subtotal + `delivery_price`. Fulfillment `status` and `payment_status` are separate fields.
+`delivery_method_id` and `payment_method_id` are **required**. Both must exist and be active; otherwise **422**. Checkout snapshots `delivery_method_name`, `delivery_price` (0 if subtotal ≥ `free_over`), `payment_method_name`, `payment_status` (`pending`), and `currency` from settings (`shop.currency`, default `EUR`). Order `total` = cart subtotal + `delivery_price` (prices are tax-inclusive; VAT is extracted for display only and does not increase `total`). Each item snapshots `tax_name`, `tax_rate`, `tax_amount` from the product tax or the default tax; order `tax_amount` is the sum of item VAT. Fulfillment `status` and `payment_status` are separate fields.
 
 If the payment method `key` is `stripe`, checkout also creates a Stripe PaymentIntent, stores `stripe_payment_intent_id` / `stripe_client_secret`, and returns top-level `client_secret` for confirming payment. Stripe checkout does **not** send email yet; email goes out when the webhook marks the order `paid`. COD still emails immediately on place. If Stripe fails to create the Intent, stock is restored and the order is set to `failed` / `payment_status: failed` (**502**).
 
@@ -356,7 +357,7 @@ If the payment method `key` is `stripe`, checkout also creates a Stripe PaymentI
 
 **List (`GET /orders`) fields:** `id`, `status`, `total`, `currency`, `items_count`, `delivery_method_name`, `payment_method_name`, `payment_status`, `created_at`
 
-**Detail / create response fields:** `id`, `status`, `total`, `currency`, delivery + payment snapshot fields (including `payment_status`), address fields, `items` (`product_id`, `product_name`, `price`, `quantity`, `subtotal`), timestamps
+**Detail / create response fields:** `id`, `status`, `total`, `tax_amount`, `currency`, delivery + payment snapshot fields (including `payment_status`), address fields, `items` (`product_id`, `product_name`, `price`, `quantity`, `subtotal`, `tax_name`, `tax_rate`, `tax_amount`), timestamps
 
 Successful create also returns `"message": "Order placed successfully."` and status **201**. Empty cart → **422**. Not enough stock → **422**; product `stock` is decremented inside a transaction (`lockForUpdate`). For COD, an order confirmation email is sent immediately (Mailpit locally). For Stripe, the same email style is sent after payment succeeds (webhook).
 
@@ -417,9 +418,27 @@ Flow: upload → copy `path` → send as `image` on create/update category (JSON
 
 **Query (`GET /products`):** same as public shop — `category`, `search`, `per_page`, `sort` (`name` \| `price` \| `created_at`), `order`.
 
-**Create/update body (JSON):** `category_id`, `name`, `slug`, `description` (nullable), `price`, `stock`, `image` (nullable path from uploads with `folder=products`), `is_active` (optional boolean).
+**Create/update body (JSON):** `category_id`, `name`, `slug`, `description` (nullable), `price`, `tax_id` (nullable; falls back to default tax at checkout), `stock`, `image` (nullable path from uploads with `folder=products`), `is_active` (optional boolean).
 
 Deleting a product removes it from carts; order items keep `product_name` and set `product_id` to null. Image files stay on disk.
+
+#### Taxes
+
+Admin-managed VAT rates. Product prices are **tax-inclusive**; checkout extracts VAT for info (`tax_amount`) and does not change `total`. One tax may be `is_default` (used when a product has no `tax_id`). Cannot delete the default tax or a tax still assigned to products.
+
+| Method | Endpoint | Description |
+| ------ | -------- | ----------- |
+| GET | `/taxes` | List all taxes |
+| POST | `/taxes` | Create |
+| GET | `/taxes/{id}` | Show |
+| PUT/PATCH | `/taxes/{id}` | Update (partial with `PATCH`) |
+| DELETE | `/taxes/{id}` | Delete (`204`); else `422` if default or in use |
+
+**Fields:** `id`, `name`, `rate`, `is_default`, `is_active`, timestamps
+
+**Create/update body:** `name`, `rate` (0–100), `is_default` (optional), `is_active` (optional). Setting `is_default: true` clears the previous default.
+
+Customer → **403**.
 
 #### Orders
 
