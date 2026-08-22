@@ -38,6 +38,7 @@
         <td style="padding: 8px 0;">{{ __('mail.orders.subtotal') }}</td>
         <td align="right" style="border-top: 1px solid #edeff2; padding: 8px 0;">{{ number_format($order->total - $order->delivery_price, 2) }} {{ $order->currency }}</td>
     </tr>
+    @if ((float) $order->tax_amount > 0)
     <tr>
         <td style="padding: 8px 0;">
             @php
@@ -51,6 +52,7 @@
         </td>
         <td align="right" style="padding: 8px 0;">{{ number_format($order->tax_amount, 2) }} {{ $order->currency }}</td>
     </tr>
+    @endif
     <tr>
         <td style="padding: 8px 0;">{{ __('mail.orders.delivery', ['method' => $order->delivery_method_name]) }}</td>
         <td align="right" style="border-bottom: 1px solid #edeff2; padding: 8px 0;">{{ number_format($order->delivery_price, 2) }} {{ $order->currency }}</td>
