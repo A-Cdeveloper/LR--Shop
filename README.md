@@ -28,7 +28,7 @@ Implemented:
 - Delivery methods (public list + admin CRUD); checkout requires `delivery_method_id` with price/`free_over` snapshot
 - Payment methods (public list + admin CRUD); checkout requires `payment_method_id` with name snapshot; methods have a stable `key` (`cash_on_delivery`, `stripe`)
 - Order `payment_status` (`pending` / `paid` / `failed` / `refunded`); checkout starts as `pending`; admin can update via order PATCH
-- Stripe test payments: PaymentIntent on checkout (`client_secret`), webhook marks `paid` and sends confirmation email; COD email still on place
+- Stripe test payments: PaymentIntent on checkout (`client_secret`); webhook marks `paid` (+ email) or `failed`
 - Order currency snapshot from `shop.currency` settings at checkout
 - Order confirmation email (COD on checkout; Stripe after successful payment — Mailpit locally)
 - Order status change email to customer when admin updates fulfillment `status` (Mailpit locally)
@@ -305,7 +305,7 @@ Public endpoint (no auth). Stripe CLI locally: `stripe listen --forward-to local
 | ------ | -------- | ----------- |
 | POST | `/stripe/webhook` | Stripe events (signature verified) |
 
-On `payment_intent.succeeded`, the order from Intent metadata `order_id` gets `payment_status: paid` and the confirmation email is sent.
+On `payment_intent.succeeded`, the order from Intent metadata `order_id` gets `payment_status: paid` and the confirmation email is sent. On `payment_intent.payment_failed`, a still-`pending` order is set to `payment_status: failed` (no email).
 
 Env: `STRIPE_KEY`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET` (see `.env.example`).
 
@@ -569,10 +569,6 @@ Things we skipped on purpose (MVP). Do these before production / when polishing:
 
 - [ ] Optional: revoke other tokens after change-password
 - [ ] Refresh-token style flow (only if needed; Sanctum is usually enough)
-
-### Cart / Orders
-
-- [ ] Optional: payment_intent.payment_failed webhook handling
 
 ### Admin / tooling
 
