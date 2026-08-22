@@ -9,7 +9,6 @@ class Order extends Model
 {
     public const STOCK_HELD_STATUSES = [
         'pending',
-        'processing',
         'completed',
     ];
 

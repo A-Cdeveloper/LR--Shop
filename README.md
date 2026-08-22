@@ -26,10 +26,11 @@ Implemented:
 - User carts (`user_id`) and guest cart merge on login/register
 - Orders API (checkout, list, show — auth required; shipping from profile)
 - Delivery methods (public list + admin CRUD); checkout requires `delivery_method_id` with price/`free_over` snapshot
-- Payment methods (public list + admin CRUD); checkout requires `payment_method_id` with name snapshot (Cash on delivery / Stripe placeholder; real Stripe later)
+- Payment methods (public list + admin CRUD); checkout requires `payment_method_id` with name snapshot; methods have a stable `key` (`cash_on_delivery`, `stripe`)
 - Order `payment_status` (`pending` / `paid` / `failed` / `refunded`); checkout starts as `pending`; admin can update via order PATCH
+- Stripe test payments: PaymentIntent on checkout (`client_secret`), webhook marks `paid` and sends confirmation email; COD email still on place
 - Order currency snapshot from `shop.currency` settings at checkout
-- Order confirmation email on checkout (Mailpit locally)
+- Order confirmation email (COD on checkout; Stripe after successful payment — Mailpit locally)
 - Order status change email to customer when admin updates fulfillment `status` (Mailpit locally)
 - CORS configured via `FRONTEND_URL` env variable (default `http://localhost:5173`)
 - Profile API (GET/PATCH/DELETE — hard delete; admins blocked)
@@ -47,7 +48,7 @@ Implemented:
 
 Planned:
 
-- Stripe test payments
+- React storefront
 
 ## API
 
@@ -292,9 +293,21 @@ Public list of **active** payment options (no auth). Used at checkout. Any activ
 | ------ | -------- | ----------- |
 | GET | `/payment-methods` | Active payment methods |
 
-**Fields:** `id`, `name`, `description`, `is_active`
+**Fields:** `id`, `key`, `name`, `description`, `is_active`
 
-Seeded defaults: **Cash on delivery** and **Stripe** (selection only for now; Stripe charge/webhook later).
+Seeded defaults: **Cash on delivery** (`cash_on_delivery`) and **Stripe** (`stripe`).
+
+### Stripe webhook
+
+Public endpoint (no auth). Stripe CLI locally: `stripe listen --forward-to localhost:8000/api/v1/stripe/webhook`. Set `STRIPE_WEBHOOK_SECRET` from the CLI `whsec_...` value.
+
+| Method | Endpoint | Description |
+| ------ | -------- | ----------- |
+| POST | `/stripe/webhook` | Stripe events (signature verified) |
+
+On `payment_intent.succeeded`, the order from Intent metadata `order_id` gets `payment_status: paid` and the confirmation email is sent.
+
+Env: `STRIPE_KEY`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET` (see `.env.example`).
 
 ### Orders
 
@@ -309,6 +322,8 @@ Logged-in users only (`auth:sanctum`). Guest checkout is **not** supported — l
 Shipping is taken from the **user profile** when the body is empty. Body fields override profile. Incomplete profile (missing phone/address) → **422**. `customer_phone` must be E.164 (same as profile); spaces/dashes are stripped.
 
 `delivery_method_id` and `payment_method_id` are **required**. Both must exist and be active; otherwise **422**. Checkout snapshots `delivery_method_name`, `delivery_price` (0 if subtotal ≥ `free_over`), `payment_method_name`, `payment_status` (`pending`), and `currency` from settings (`shop.currency`, default `EUR`). Order `total` = cart subtotal + `delivery_price`. Fulfillment `status` and `payment_status` are separate fields.
+
+If the payment method `key` is `stripe`, checkout also creates a Stripe PaymentIntent, stores `stripe_payment_intent_id` / `stripe_client_secret`, and returns top-level `client_secret` for confirming payment. Stripe checkout does **not** send email yet; email goes out when the webhook marks the order `paid`. COD still emails immediately on place. If Stripe fails to create the Intent, stock is restored and the order is set to `failed` / `payment_status: failed` (**502**).
 
 **POST `/orders` body** (`delivery_method_id` and `payment_method_id` required; shipping optional if profile is complete):
 
@@ -330,7 +345,7 @@ Shipping is taken from the **user profile** when the body is empty. Body fields 
 
 **Detail / create response fields:** `id`, `status`, `total`, `currency`, delivery + payment snapshot fields (including `payment_status`), address fields, `items` (`product_id`, `product_name`, `price`, `quantity`, `subtotal`), timestamps
 
-Successful create also returns `"message": "Order placed successfully."` and status **201**. Empty cart → **422**. Not enough stock → **422**; product `stock` is decremented inside a transaction (`lockForUpdate`). An order confirmation email is sent to the user's address (Mailpit locally) with: item table (product, qty, unit price, subtotal), then a separate totals block (subtotal, delivery, total) with currency, payment method, payment status, shipping address, and shop name from settings (`shop.name`).
+Successful create also returns `"message": "Order placed successfully."` and status **201**. Empty cart → **422**. Not enough stock → **422**; product `stock` is decremented inside a transaction (`lockForUpdate`). For COD, an order confirmation email is sent immediately (Mailpit locally). For Stripe, the same email style is sent after payment succeeds (webhook).
 
 ### Admin
 
@@ -405,11 +420,11 @@ Admins see **all** orders. Checkout stays on the customer API (`POST /orders`). 
 
 **Query (`GET /orders`):** `per_page` (1–50, default 10), `status` (one of the fulfillment values below), `sort` (`total` \| `created_at`), `order` (`asc` \| `desc`). Invalid `status` → **422**.
 
-**Fulfillment statuses:** `pending`, `processing`, `completed`, `cancelled`, `failed`, `refunded`. New checkouts start as `pending`.
+**Fulfillment statuses:** `pending`, `completed`, `cancelled`, `failed`, `refunded`. New checkouts start as `pending`.
 
-**Payment statuses:** `pending`, `paid`, `failed`, `refunded`. New checkouts start as `pending` (COD stays pending until admin marks `paid`; Stripe will update later via webhook).
+**Payment statuses:** `pending`, `paid`, `failed`, `refunded`. New checkouts start as `pending` (COD stays pending until admin marks `paid`; Stripe updates to `paid` via webhook).
 
-Moving an order from a held fulfillment status (`pending`, `processing`, `completed`) to `cancelled`, `failed`, or `refunded` **restores** product stock. The same status again does not double-restore. Changing fulfillment `status` sends an email to the customer (Mailpit locally) with the old/new status, item table, totals, payment, and shipping (same layout as the placed email). Changing only `payment_status` does **not** send email.
+Moving an order from a held fulfillment status (`pending`, `completed`) to `cancelled`, `failed`, or `refunded` **restores** product stock. The same status again does not double-restore. Changing fulfillment `status` sends an email to the customer (Mailpit locally) with the old/new status, item table, totals, payment, and shipping (same layout as the placed email). Changing only `payment_status` does **not** send email.
 
 **PATCH body** (at least one of `status` or `payment_status` required):
 
@@ -557,7 +572,7 @@ Things we skipped on purpose (MVP). Do these before production / when polishing:
 
 ### Cart / Orders
 
-- [ ] Payment (Stripe / etc.)
+- [ ] Optional: payment_intent.payment_failed webhook handling
 
 ### Admin / tooling
 
