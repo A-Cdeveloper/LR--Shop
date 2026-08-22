@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Setting;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -13,7 +14,11 @@ class SetLocale
 
     public function handle(Request $request, Closure $next): Response
     {
-        $locale = config('app.locale', 'en');
+        $locale = Setting::get('shop.locale', config('app.locale', 'en'));
+
+        if (! in_array($locale, self::SUPPORTED, true)) {
+            $locale = 'en';
+        }
 
         if (
             $request->filled('lang')

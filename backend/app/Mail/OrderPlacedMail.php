@@ -25,7 +25,7 @@ class OrderPlacedMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Order #' . $this->order->id . ' received',
+            subject: __('mail.orders.placed_subject', ['id' => $this->order->id]),
         );
     }
 

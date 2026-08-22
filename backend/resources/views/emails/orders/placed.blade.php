@@ -1,17 +1,17 @@
 <x-mail::message>
-# Order #{{ $order->id }} received
+# {{ __('mail.orders.placed_heading', ['id' => $order->id]) }}
 
-Hello {{ $order->customer_name }},
+{{ __('mail.orders.placed_hello', ['name' => $order->customer_name]) }}
 
-We received your order.
+{{ __('mail.orders.placed_intro') }}
 
 <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="font-size: 13px; margin: 16px 0; border-collapse: collapse;">
     <thead>
         <tr>
-            <th align="left" style="border-bottom: 1px solid #edeff2; padding: 8px 0;">Products</th>
-            <th align="right" style="border-bottom: 1px solid #edeff2; padding: 8px 0;">Qty</th>
-            <th align="right" style="border-bottom: 1px solid #edeff2; padding: 8px 0;">Price</th>
-            <th align="right" style="border-bottom: 1px solid #edeff2; padding: 8px 0;">Subtotal</th>
+            <th align="left" style="border-bottom: 1px solid #edeff2; padding: 8px 0;">{{ __('mail.orders.products') }}</th>
+            <th align="right" style="border-bottom: 1px solid #edeff2; padding: 8px 0;">{{ __('mail.orders.qty') }}</th>
+            <th align="right" style="border-bottom: 1px solid #edeff2; padding: 8px 0;">{{ __('mail.orders.price') }}</th>
+            <th align="right" style="border-bottom: 1px solid #edeff2; padding: 8px 0;">{{ __('mail.orders.subtotal') }}</th>
         </tr>
     </thead>
     <tbody>
@@ -28,25 +28,25 @@ We received your order.
 
 <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="font-size: 13px; margin: 24px 0; border-collapse: collapse;">
     <tr>
-        <td style="padding: 8px 0;">Subtotal</td>
+        <td style="padding: 8px 0;">{{ __('mail.orders.subtotal') }}</td>
         <td align="right" style="border-top: 1px solid #edeff2; padding: 8px 0;">{{ number_format($order->total - $order->delivery_price, 2) }} {{ $order->currency }}</td>
     </tr>
     <tr>
-        <td style="padding: 8px 0;">Delivery ({{ $order->delivery_method_name }})</td>
+        <td style="padding: 8px 0;">{{ __('mail.orders.delivery', ['method' => $order->delivery_method_name]) }}</td>
         <td align="right" style="border-bottom: 1px solid #edeff2; padding: 8px 0;">{{ number_format($order->delivery_price, 2) }} {{ $order->currency }}</td>
     </tr>
     <tr>
-        <td style="padding: 8px 0;"><strong>Total</strong></td>
+        <td style="padding: 8px 0;"><strong>{{ __('mail.orders.total') }}</strong></td>
         <td align="right" style="padding: 8px 0;"><strong>{{ number_format($order->total, 2) }} {{ $order->currency }}</strong></td>
     </tr>
 </table>
 
 <p style="margin: 28px 0;font-size: 13px;">
-Payment: {{ $order->payment_method_name }}<br>
-Payment status: {{ $order->payment_status }}<br>
-Shipping: {{ $order->shipping_address }}, {{ $order->city }}, {{ $order->zip }}, {{ $order->country }}
+{{ __('mail.orders.payment', ['method' => $order->payment_method_name]) }}<br>
+{{ __('mail.orders.payment_status', ['status' => $order->payment_status]) }}<br>
+{{ __('mail.orders.shipping', ['address' => $order->shipping_address.', '.$order->city.', '.$order->zip.', '.$order->country]) }}
 </p>
 
-Thanks,<br>
+{{ __('mail.orders.thanks') }}<br>
 {{ \App\Models\Setting::get('shop.name', config('app.name')) }}
 </x-mail::message>

@@ -21,7 +21,10 @@ class OrderStatusMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Order #'.$this->order->id.' status updated to '.$this->order->status,
+            subject: __('mail.orders.status_subject', [
+                'id' => $this->order->id,
+                'status' => $this->order->status,
+            ]),
         );
     }
 
