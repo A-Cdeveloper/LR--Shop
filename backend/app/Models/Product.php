@@ -11,7 +11,7 @@ class Product extends Model
 
     use HasFactory;
 
-    protected $fillable = ['category_id', 'name', 'slug', 'description', 'price', 'stock', 'image', 'is_active'];
+    protected $fillable = ['category_id', "tax_id", 'name', 'slug', 'description', 'price', 'stock', 'image', 'is_active'];
 
     /**
      * Get the route key for the model.
@@ -27,6 +27,14 @@ class Product extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Get the tax for the product.
+     */
+    public function tax()
+    {
+        return $this->belongsTo(Tax::class);
     }
 
     /**

@@ -34,6 +34,7 @@ class Order extends Model
         'user_id',
         'status',
         'total',
+        'tax_amount',
         'currency',
         'customer_name',
         'customer_phone',

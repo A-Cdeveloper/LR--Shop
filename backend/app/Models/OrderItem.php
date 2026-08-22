@@ -13,6 +13,9 @@ class OrderItem extends Model
         'price',
         'quantity',
         'subtotal',
+        'tax_name',
+        'tax_rate',
+        'tax_amount',
     ];
 
     public function order()

@@ -22,6 +22,8 @@ return [
         'payment_status' => 'Payment status: :status',
         'shipping' => 'Shipping: :address',
         'thanks' => 'Thanks,',
+        'tax' => 'VAT included (:rate%)',
+        'tax_plain' => 'VAT included',
     ],
 
 ];

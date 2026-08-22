@@ -26,6 +26,7 @@ class AdminProductController extends Controller
 
         $products = Product::query()
             ->withCategory()
+            ->with('tax')
             ->search($searchQuery)
             ->withCategorySlug($categoryQuery)
             ->sortBy($sortField, $sortDirection)
@@ -41,7 +42,7 @@ class AdminProductController extends Controller
     public function store(StoreProductRequest $request)
     {
         $product = Product::create($request->validated());
-        $product->load('category');
+        $product->load(['category', 'tax']);
 
         return (new ProductResource($product))
             ->additional(['message' => __('api.admin.product_created')])
@@ -54,7 +55,7 @@ class AdminProductController extends Controller
      */
     public function show(Product $product)
     {
-        $product->load('category');
+        $product->load(['category', 'tax']);
 
         return new ProductResource($product);
     }
@@ -65,8 +66,8 @@ class AdminProductController extends Controller
     public function update(UpdateProductRequest $request, Product $product)
     {
         $product->update($request->validated());
-        $product->load('category');
-        return (new ProductResource($product->fresh()))
+
+        return (new ProductResource($product->fresh()->load(['category', 'tax'])))
             ->additional(['message' => __('api.admin.product_updated')]);
     }
 

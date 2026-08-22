@@ -58,6 +58,10 @@ return [
         'delivery_method_updated' => 'Način dostave je uspešno ažuriran.',
         'payment_method_created' => 'Način plaćanja je uspešno kreiran.',
         'payment_method_updated' => 'Način plaćanja je uspešno ažuriran.',
+        'tax_created' => 'Porez je uspešno kreiran.',
+        'tax_updated' => 'Porez je uspešno ažuriran.',
+        'tax_delete_default' => 'Ne možete obrisati podrazumevani porez.',
+        'tax_delete_has_products' => 'Ne možete obrisati porez koji je vezan za proizvode.',
     ],
 
 ];

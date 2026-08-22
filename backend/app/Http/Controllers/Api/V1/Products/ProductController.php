@@ -23,6 +23,7 @@ class ProductController extends Controller
 
         $products = Product::active()
             ->withCategory()
+            ->with('tax')
             ->search($searchQuery)
             ->withCategorySlug($categoryQuery)
             ->sortBy($sortField, $sortDirection)
@@ -44,7 +45,7 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
-        $product->load('category');
+        $product->load(['category', 'tax']);
 
         return new ProductResource($product);
     }

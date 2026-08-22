@@ -58,6 +58,10 @@ return [
         'delivery_method_updated' => 'Delivery method updated successfully.',
         'payment_method_created' => 'Payment method created successfully.',
         'payment_method_updated' => 'Payment method updated successfully.',
+        'tax_created' => 'Tax created successfully.',
+        'tax_updated' => 'Tax updated successfully.',
+        'tax_delete_default' => 'Cannot delete the default tax.',
+        'tax_delete_has_products' => 'Cannot delete tax assigned to products.',
     ],
 
 ];

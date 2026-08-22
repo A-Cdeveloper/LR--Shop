@@ -12,6 +12,7 @@ use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Setting;
+use App\Models\Tax;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -52,7 +53,7 @@ class OrderController extends Controller
     {
         $orderData = $request->validated();
         $user = $request->user();
-        $cart = $user->cart()->with('items.product')->first();
+        $cart = $user->cart()->with('items.product.tax')->first();
 
         if (! $cart || $cart->items->isEmpty()) {
             return response()->json(['message' => __('api.orders.cart_empty')], 422);
@@ -112,6 +113,11 @@ class OrderController extends Controller
                 $deliveryPrice = 0;
             }
 
+
+            $defaultTax = Tax::default();
+            $orderTaxAmount = 0;
+
+
             $total = round($total + $deliveryPrice, 2);
 
 
@@ -120,6 +126,7 @@ class OrderController extends Controller
                 'user_id' => $user->id,
                 'status' => 'pending',
                 'total' => round($total, 2),
+                'tax_amount' => 0,
                 'currency' => Setting::get('shop.currency', 'EUR'),
                 'delivery_method_id' => $deliveryMethod->id,
                 'delivery_method_name' => $deliveryMethod->name,
@@ -131,14 +138,30 @@ class OrderController extends Controller
             ]);
 
             foreach ($cart->items as $item) {
+                $subtotal = round($item->quantity * $item->product->price, 2);
+
+                $tax = $item->product->tax ?? $defaultTax;
+                $taxRate = $tax ? (float) $tax->rate : 0;
+                $taxName = $tax?->name;
+                $taxAmount = Tax::extractInclusive($subtotal, $taxRate);
+
+                $orderTaxAmount += $taxAmount;
+
                 $order->items()->create([
                     'product_id' => $item->product_id,
                     'product_name' => $item->product->name,
                     'price' => $item->product->price,
                     'quantity' => $item->quantity,
-                    'subtotal' => round($item->quantity * $item->product->price, 2),
+                    'subtotal' => $subtotal,
+                    'tax_name' => $taxName,
+                    'tax_rate' => $taxRate,
+                    'tax_amount' => $taxAmount,
                 ]);
             }
+
+            $order->update([
+                'tax_amount' => round($orderTaxAmount, 2),
+            ]);
 
             $cart->items()->delete();
 

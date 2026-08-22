@@ -32,6 +32,14 @@ class ProductResource extends JsonResource
                     'slug' => $this->category->slug,
                 ];
             }),
+            'tax_id' => $this->tax_id,
+            'tax' => $this->whenLoaded('tax', function () {
+                return $this->tax ? [
+                    'id' => $this->tax->id,
+                    'name' => $this->tax->name,
+                    'rate' => $this->tax->rate,
+                ] : null;
+            }),
         ];
     }
 }

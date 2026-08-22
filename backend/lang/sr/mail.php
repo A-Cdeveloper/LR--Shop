@@ -22,6 +22,8 @@ return [
         'payment_status' => 'Status plaćanja: :status',
         'shipping' => 'Isporuka: :address',
         'thanks' => 'Hvala,',
+        'tax' => 'Uključeni PDV (:rate%)',
+        'tax_plain' => 'Uključeni PDV',
     ],
 
 ];
