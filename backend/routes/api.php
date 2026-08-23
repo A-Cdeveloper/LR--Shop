@@ -40,14 +40,21 @@ Route::prefix('v1')->group(function () {
     Route::get('payment-methods', [PaymentMethodController::class, 'index']);
     Route::post('stripe/webhook', [StripeWebhookController::class, 'handle']);
 
-    Route::post('register', [AuthController::class, 'register']);
+    Route::post('register', [AuthController::class, 'register'])
+        ->middleware('throttle:5,1');
     Route::get('email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
         ->middleware('signed')
         ->name('verification.verify');
-    Route::post('email/verification-notification', [EmailVerificationController::class, 'resend']);
-    Route::post('login', [AuthController::class, 'login']);
-    Route::post('forgot-password', [ForgotPasswordController::class, 'store'])->name('forgot-password');
-    Route::post('reset-password', [ResetPasswordController::class, 'update'])->name('reset-password');
+    Route::post('email/verification-notification', [EmailVerificationController::class, 'resend'])
+        ->middleware('throttle:3,1');
+    Route::post('login', [AuthController::class, 'login'])
+        ->middleware('throttle:5,1');
+    Route::post('forgot-password', [ForgotPasswordController::class, 'store'])
+        ->middleware('throttle:3,1')
+        ->name('forgot-password');
+    Route::post('reset-password', [ResetPasswordController::class, 'update'])
+        ->middleware('throttle:5,1')
+        ->name('reset-password');
 });
 
 // Protected (Bearer token required)
