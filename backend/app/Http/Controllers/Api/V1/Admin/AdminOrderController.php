@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateOrderStatusRequest;
 use App\Http\Resources\Orders\OrderResource;
+use App\Mail\OrderPlacedMail;
 use App\Mail\OrderStatusMail;
 use App\Models\Order;
 use App\Models\Product;
@@ -100,6 +101,10 @@ class AdminOrderController extends Controller
 
         if ($statusChanged) {
             Mail::to($order->user->email)->send(new OrderStatusMail($order, $oldStatus));
+        }
+
+        if ($paymentStatusChanged && $order->payment_status === 'paid') {
+            Mail::to($order->user->email)->send(new OrderPlacedMail($order));
         }
 
         return (new OrderResource($order))

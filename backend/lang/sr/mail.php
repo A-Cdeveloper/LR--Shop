@@ -24,6 +24,9 @@ return [
         'thanks' => 'Hvala,',
         'tax' => 'Uključeni PDV (:rate%)',
         'tax_plain' => 'Uključeni PDV',
+
+        'invoice_heading' => 'Račun #:id',
+        'invoice_intro' => 'Plaćanje je primljeno. U prilogu je vaš račun.',
     ],
 
 ];

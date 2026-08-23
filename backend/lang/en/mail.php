@@ -24,6 +24,9 @@ return [
         'thanks' => 'Thanks,',
         'tax' => 'VAT included (:rate%)',
         'tax_plain' => 'VAT included',
+
+        'invoice_heading' => 'Invoice #:id',
+        'invoice_intro' => 'Payment received. Please find your invoice below.',
     ],
 
 ];

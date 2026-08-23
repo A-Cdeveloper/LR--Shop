@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Order;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Attachment;
@@ -46,6 +47,19 @@ class OrderPlacedMail extends Mailable
      */
     public function attachments(): array
     {
-        return [];
+        if ($this->order->payment_status !== 'paid') {
+            return [];
+        }
+
+        $pdf = Pdf::loadView('pdfs.invoice', [
+            'order' => $this->order->loadMissing('items'),
+        ]);
+
+        return [
+            Attachment::fromData(
+                fn() => $pdf->output(),
+                'invoice-' . $this->order->id . '.pdf'
+            )->withMime('application/pdf'),
+        ];
     }
 }
