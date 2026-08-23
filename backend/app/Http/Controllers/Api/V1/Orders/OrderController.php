@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Orders\StoreOrderRequest;
 use App\Http\Resources\Orders\OrderResource;
 use App\Http\Resources\Orders\OrderSummaryResource;
+use App\Mail\OrderPlacedAdminMail;
 use App\Mail\OrderPlacedMail;
 use App\Models\DeliveryMethod;
 use App\Models\Order;
@@ -214,6 +215,15 @@ class OrderController extends Controller
 
         if ($paymentMethod->key !== 'stripe') {
             Mail::to($user->email)->send(new OrderPlacedMail($order->load('items')));
+        }
+
+
+        $adminEmail = Setting::get('shop.email');
+
+        if (filled($adminEmail)) {
+            Mail::to($adminEmail)->send(
+                new OrderPlacedAdminMail($order->load('items'))
+            );
         }
 
 

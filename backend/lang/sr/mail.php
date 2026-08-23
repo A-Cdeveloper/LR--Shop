@@ -27,6 +27,17 @@ return [
 
         'invoice_heading' => 'Račun #:id',
         'invoice_intro' => 'Plaćanje je primljeno. U prilogu je vaš račun.',
+
+
+
+        'admin_placed_subject' => 'Nova porudžbina #:id',
+        'admin_placed_heading' => 'Nova porudžbina #:id',
+        'admin_placed_intro' => 'Kupac je napravio novu porudžbinu.',
+        'customer' => 'Kupac',
+        'phone' => 'Telefon',
+        'shipping_address' => 'Adresa za isporuku',
+        'delivery_method' => 'Dostava',
+        'payment_method' => 'Plaćanje',
     ],
 
 ];
