@@ -33,6 +33,7 @@ Implemented:
 - Taxes (admin CRUD); products optional `tax_id`; checkout snapshots inclusive VAT on items / order (`tax_amount`) without changing `total`
 - Product `sale_price` (optional); cart/checkout use effective price; order items snapshot `original_price` for email strikethrough
 - Order confirmation email (COD on checkout; Stripe after successful payment — Mailpit locally)
+- Invoice PDF (`barryvdh/laravel-dompdf`) attached to confirmation email when `payment_status` becomes `paid` (Stripe webhook or admin PATCH)
 - Order status change email to customer when admin updates fulfillment `status` (Mailpit locally)
 - CORS configured via `FRONTEND_URL` env variable (default `http://localhost:5173`)
 - API locale: `en` / `sr` via `Accept-Language`, `?lang=`, or `shop.locale` (API messages, validation, emails)
@@ -322,7 +323,7 @@ Public endpoint (no auth). Stripe CLI locally: `stripe listen --forward-to local
 | ------ | -------- | ----------- |
 | POST | `/stripe/webhook` | Stripe events (signature verified) |
 
-On `payment_intent.succeeded`, the order from Intent metadata `order_id` gets `payment_status: paid` and the confirmation email is sent. On `payment_intent.payment_failed`, a still-`pending` order is set to `payment_status: failed` (no email). On `charge.refunded`, `payment_status` is set to `refunded` if not already (Dashboard refunds; admin API refund also updates the order directly).
+On `payment_intent.succeeded`, the order from Intent metadata `order_id` gets `payment_status: paid` and the confirmation email is sent with an invoice PDF attachment. On `payment_intent.payment_failed`, a still-`pending` order is set to `payment_status: failed` (no email). On `charge.refunded`, `payment_status` is set to `refunded` if not already (Dashboard refunds; admin API refund also updates the order directly).
 
 Env: `STRIPE_KEY`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET` (see `.env.example`).
 
@@ -362,7 +363,7 @@ If the payment method `key` is `stripe`, checkout also creates a Stripe PaymentI
 
 **Detail / create response fields:** `id`, `status`, `total`, `tax_amount`, `currency`, delivery + payment snapshot fields (including `payment_status`), address fields, `items` (`product_id`, `product_name`, `price`, `original_price` nullable when purchased on sale, `quantity`, `subtotal`, `tax_name`, `tax_rate`, `tax_amount`), timestamps
 
-Successful create also returns `"message": "Order placed successfully."` and status **201**. Empty cart → **422**. Not enough stock → **422**; product `stock` is decremented inside a transaction (`lockForUpdate`). For COD, an order confirmation email is sent immediately (Mailpit locally). For Stripe, the same email style is sent after payment succeeds (webhook).
+Successful create also returns `"message": "Order placed successfully."` and status **201**. Empty cart → **422**. Not enough stock → **422**; product `stock` is decremented inside a transaction (`lockForUpdate`). For COD, an order confirmation email is sent immediately (Mailpit locally) without PDF while payment is still `pending`. For Stripe, the same email style is sent after payment succeeds (webhook), with invoice PDF attached (`invoice-{id}.pdf`).
 
 ### Admin
 
@@ -460,7 +461,7 @@ Admins see **all** orders. Checkout stays on the customer API (`POST /orders`). 
 
 **Payment statuses:** `pending`, `paid`, `failed`, `refunded`. New checkouts start as `pending` (COD stays pending until admin marks `paid`; Stripe updates to `paid` via webhook).
 
-Moving an order from a held fulfillment status (`pending`, `completed`) to `cancelled`, `failed`, or `refunded` **restores** product stock. The same status again does not double-restore. Changing fulfillment `status` sends an email to the customer (Mailpit locally) with the old/new status, item table, totals, payment, and shipping (same layout as the placed email). Changing only `payment_status` does **not** send email.
+Moving an order from a held fulfillment status (`pending`, `completed`) to `cancelled`, `failed`, or `refunded` **restores** product stock. The same status again does not double-restore. Changing fulfillment `status` sends an email to the customer (Mailpit locally) with the old/new status, item table, totals, payment, and shipping (same layout as the placed email). Changing `payment_status` to `paid` sends the confirmation email again with an invoice PDF attachment (COD after admin marks paid; Stripe usually already did this via webhook).
 
 **POST `/orders/{id}/refund`:** only when `payment_status` is `paid` and the order has a `stripe_payment_intent_id`. Creates a full Stripe refund, sets `status` + `payment_status` to `refunded`, restores stock, and sends the status-change email. Not allowed / not Stripe paid → **422**. Stripe API error → **502**. Partial refunds are not supported.
 
