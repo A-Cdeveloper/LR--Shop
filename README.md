@@ -22,7 +22,7 @@ Implemented:
 - Categories API (read-only)
 - Products API (read-only)
 - Guest cart API (`X-Cart-Token`)
-- Auth API (register, email verify, resend verify, login, logout, forgot/reset/change password)
+- Auth API (register, email verify, resend verify, login, logout, forgot/reset/change password); public auth routes rate-limited (`login`/`register`/`reset-password` 5/min; `forgot-password`/`verification-notification` 3/min)
 - User carts (`user_id`) and guest cart merge on login/register
 - Orders API (checkout, list, show — auth required; shipping from profile)
 - Delivery methods (public list + admin CRUD); checkout requires `delivery_method_id` with price/`free_over` snapshot
@@ -33,6 +33,7 @@ Implemented:
 - Taxes (admin CRUD); products optional `tax_id`; checkout snapshots inclusive VAT on items / order (`tax_amount`) without changing `total`
 - Product `sale_price` (optional); cart/checkout use effective price; order items snapshot `original_price` for email strikethrough
 - Order confirmation email (COD on checkout; Stripe after successful payment — Mailpit locally)
+- Admin new-order email to `shop.email` on every successful checkout (COD and Stripe)
 - Invoice PDF (`barryvdh/laravel-dompdf`) attached to confirmation email when `payment_status` becomes `paid` (Stripe webhook or admin PATCH)
 - Order status change email to customer when admin updates fulfillment `status` (Mailpit locally)
 - CORS configured via `FRONTEND_URL` env variable (default `http://localhost:5173`)
@@ -129,6 +130,8 @@ Accept: application/json
 | POST   | `/forgot-password`          | no   | Send reset link (Mailpit locally)                        |
 | POST   | `/reset-password`           | no   | Set new password using email token                       |
 | POST   | `/change-password`          | yes  | Change password while logged in                          |
+
+**Rate limits (public auth):** `login`, `register`, `reset-password` → 5 requests/minute; `forgot-password`, `email/verification-notification` → 3/minute. Over limit → **429**. Protected customer/admin routes use `throttle:api` (60/minute).
 
 **Email verification:** `POST /register` creates the user with `email_verified_at = null` and sends a signed link (Mailpit locally). Open the full URL from the mail (browser or GET in Postman). Success: `"Email verified."` — still **no** token. Then `POST /login`. Unverified login → **403** `Please verify your email first.` Inactive account (`is_active = false`) → **403** `Your account is not active. Please contact support.` Invalid credentials still **401**. The verify URL includes `expires` and `signature`; do not build it by hand.
 
@@ -363,7 +366,7 @@ If the payment method `key` is `stripe`, checkout also creates a Stripe PaymentI
 
 **Detail / create response fields:** `id`, `status`, `total`, `tax_amount`, `currency`, delivery + payment snapshot fields (including `payment_status`), address fields, `items` (`product_id`, `product_name`, `price`, `original_price` nullable when purchased on sale, `quantity`, `subtotal`, `tax_name`, `tax_rate`, `tax_amount`), timestamps
 
-Successful create also returns `"message": "Order placed successfully."` and status **201**. Empty cart → **422**. Not enough stock → **422**; product `stock` is decremented inside a transaction (`lockForUpdate`). For COD, an order confirmation email is sent immediately (Mailpit locally) without PDF while payment is still `pending`. For Stripe, the same email style is sent after payment succeeds (webhook), with invoice PDF attached (`invoice-{id}.pdf`).
+Successful create also returns `"message": "Order placed successfully."` and status **201**. Empty cart → **422**. Not enough stock → **422**; product `stock` is decremented inside a transaction (`lockForUpdate`). For COD, an order confirmation email is sent immediately (Mailpit locally) without PDF while payment is still `pending`. For Stripe, the same email style is sent after payment succeeds (webhook), with invoice PDF attached (`invoice-{id}.pdf`). On every successful checkout (COD and Stripe), an admin notification email is also sent to `shop.email` (skipped if that setting is empty).
 
 ### Admin
 
