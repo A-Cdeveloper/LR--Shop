@@ -1,0 +1,10 @@
+node_modules
+dist
+build
+coverage
+.git
+package-lock.json
+vendor
+frontend/dist
+frontend/node_modules
+backend

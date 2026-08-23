@@ -2,11 +2,19 @@
   "name": "lr-shop",
   "private": true,
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+    "lint": "npm run lint --prefix frontend",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
-    "husky": "^9.1.7"
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.9.6"
+  },
+  "lint-staged": {
+    "**/*.{ts,tsx,js,jsx,css,json,md}": "prettier --write"
   }
 }

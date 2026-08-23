@@ -63,10 +63,10 @@ Base URL: `http://localhost:8000/api/v1`
 
 API `message` strings, validation errors, and transactional emails use Laravel lang files (`lang/{en,sr}/api.php`, `validation.php`, `mail.php`).
 
-| How | Example |
-| --- | ------- |
-| Header | `Accept-Language: sr` |
-| Query | `?lang=sr` |
+| How          | Example                                                                                              |
+| ------------ | ---------------------------------------------------------------------------------------------------- |
+| Header       | `Accept-Language: sr`                                                                                |
+| Query        | `?lang=sr`                                                                                           |
 | Shop default | `shop.locale` setting (`en` / `sr`) — used when header/query missing; also for Stripe webhook emails |
 
 Supported: `en`, `sr`. Product/category content is not translated.
@@ -120,16 +120,16 @@ Authorization: Bearer {token}
 Accept: application/json
 ```
 
-| Method | Endpoint                    | Auth | Description                                              |
-| ------ | --------------------------- | ---- | -------------------------------------------------------- |
-| POST   | `/register`                              | no   | Create account, send verification email (**no token**)            |
-| GET    | `/email/verify/{id}/{hash}`              | no   | Confirm email via signed link from mail (no token)                |
-| POST   | `/email/verification-notification`       | no   | Resend verification link (`{ "email": "..." }`)                   |
-| POST   | `/login`                                 | no   | Return token (unverified or inactive → **403**)                   |
-| POST   | `/logout`                   | yes  | Revoke current token                                     |
-| POST   | `/forgot-password`          | no   | Send reset link (Mailpit locally)                        |
-| POST   | `/reset-password`           | no   | Set new password using email token                       |
-| POST   | `/change-password`          | yes  | Change password while logged in                          |
+| Method | Endpoint                           | Auth | Description                                            |
+| ------ | ---------------------------------- | ---- | ------------------------------------------------------ |
+| POST   | `/register`                        | no   | Create account, send verification email (**no token**) |
+| GET    | `/email/verify/{id}/{hash}`        | no   | Confirm email via signed link from mail (no token)     |
+| POST   | `/email/verification-notification` | no   | Resend verification link (`{ "email": "..." }`)        |
+| POST   | `/login`                           | no   | Return token (unverified or inactive → **403**)        |
+| POST   | `/logout`                          | yes  | Revoke current token                                   |
+| POST   | `/forgot-password`                 | no   | Send reset link (Mailpit locally)                      |
+| POST   | `/reset-password`                  | no   | Set new password using email token                     |
+| POST   | `/change-password`                 | yes  | Change password while logged in                        |
 
 **Rate limits (public auth):** `login`, `register`, `reset-password` → 5 requests/minute; `forgot-password`, `email/verification-notification` → 3/minute. Over limit → **429**. Protected customer/admin routes use `throttle:api` (60/minute).
 
@@ -298,9 +298,9 @@ Seed cart token (optional, for guest testing):
 
 Public list of **active** delivery options (no auth). Used at checkout.
 
-| Method | Endpoint | Description |
-| ------ | -------- | ----------- |
-| GET | `/delivery-methods` | Active delivery methods |
+| Method | Endpoint            | Description             |
+| ------ | ------------------- | ----------------------- |
+| GET    | `/delivery-methods` | Active delivery methods |
 
 **Fields:** `id`, `name`, `description`, `price`, `free_over`, `eta_days_min`, `eta_days_max`, `is_active`
 
@@ -310,9 +310,9 @@ Seeded defaults: **Pickup in store** (`price` 0) and **Delivery to address** (`p
 
 Public list of **active** payment options (no auth). Used at checkout. Any active payment method may be combined with any active delivery method (no pairing rules yet).
 
-| Method | Endpoint | Description |
-| ------ | -------- | ----------- |
-| GET | `/payment-methods` | Active payment methods |
+| Method | Endpoint           | Description            |
+| ------ | ------------------ | ---------------------- |
+| GET    | `/payment-methods` | Active payment methods |
 
 **Fields:** `id`, `key`, `name`, `description`, `is_active`
 
@@ -322,9 +322,9 @@ Seeded defaults: **Cash on delivery** (`cash_on_delivery`) and **Stripe** (`stri
 
 Public endpoint (no auth). Stripe CLI locally: `stripe listen --forward-to localhost:8000/api/v1/stripe/webhook`. Set `STRIPE_WEBHOOK_SECRET` from the CLI `whsec_...` value.
 
-| Method | Endpoint | Description |
-| ------ | -------- | ----------- |
-| POST | `/stripe/webhook` | Stripe events (signature verified) |
+| Method | Endpoint          | Description                        |
+| ------ | ----------------- | ---------------------------------- |
+| POST   | `/stripe/webhook` | Stripe events (signature verified) |
 
 On `payment_intent.succeeded`, the order from Intent metadata `order_id` gets `payment_status: paid` and the confirmation email is sent with an invoice PDF attachment. On `payment_intent.payment_failed`, a still-`pending` order is set to `payment_status: failed` (no email). On `charge.refunded`, `payment_status` is set to `refunded` if not already (Dashboard refunds; admin API refund also updates the order directly).
 
@@ -334,11 +334,11 @@ Env: `STRIPE_KEY`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET` (see `.env.example`)
 
 Logged-in users only (`auth:sanctum`). Guest checkout is **not** supported — login/register first (cart merge applies). Checkout builds the order from the **user cart**, then clears cart items.
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/orders` | Place order from current cart |
-| GET | `/orders` | List my orders (summary, paginated) |
-| GET | `/orders/{id}` | Order detail (own orders only) |
+| Method | Endpoint       | Description                         |
+| ------ | -------------- | ----------------------------------- |
+| POST   | `/orders`      | Place order from current cart       |
+| GET    | `/orders`      | List my orders (summary, paginated) |
+| GET    | `/orders/{id}` | Order detail (own orders only)      |
 
 Shipping is taken from the **user profile** when the body is empty. Body fields override profile. Incomplete profile (missing phone/address) → **422**. `customer_phone` must be E.164 (same as profile); spaces/dashes are stripped.
 
@@ -382,10 +382,10 @@ Shared image upload for admin resources. Returns a storage path to save on categ
 
 **form-data fields:**
 
-| Field      | Required | Description                                      |
-| ---------- | -------- | ------------------------------------------------ |
-| `file`     | yes      | Image (`jpeg`, `png`, `jpg`, `webp`), max 2MB    |
-| `folder`   | yes      | `categories` or `products`                       |
+| Field      | Required | Description                                                       |
+| ---------- | -------- | ----------------------------------------------------------------- |
+| `file`     | yes      | Image (`jpeg`, `png`, `jpg`, `webp`), max 2MB                     |
+| `folder`   | yes      | `categories` or `products`                                        |
 | `filename` | no       | Optional basename (`phones` → `phones.jpg`); omit for random name |
 
 **Response:**
@@ -401,13 +401,13 @@ Flow: upload → copy `path` → send as `image` on create/update category (JSON
 
 #### Categories
 
-| Method | Endpoint                    | Description                                      |
-| ------ | --------------------------- | ------------------------------------------------ |
-| GET    | `/categories`               | Paginated list (`per_page`, `sort`, `order`)     |
-| POST   | `/categories`               | Create category                                  |
-| GET    | `/categories/{slug}`        | Show category                                    |
-| PUT/PATCH | `/categories/{slug}`     | Update category (partial with `PATCH`)           |
-| DELETE | `/categories/{slug}`        | Delete if it has no products (`204`); else `422` |
+| Method    | Endpoint             | Description                                      |
+| --------- | -------------------- | ------------------------------------------------ |
+| GET       | `/categories`        | Paginated list (`per_page`, `sort`, `order`)     |
+| POST      | `/categories`        | Create category                                  |
+| GET       | `/categories/{slug}` | Show category                                    |
+| PUT/PATCH | `/categories/{slug}` | Update category (partial with `PATCH`)           |
+| DELETE    | `/categories/{slug}` | Delete if it has no products (`204`); else `422` |
 
 **Query (`GET /categories`):** `per_page` (1–50, default 10), `sort` (`name` \| `products_count`), `order` (`asc` \| `desc`).
 
@@ -415,13 +415,13 @@ Flow: upload → copy `path` → send as `image` on create/update category (JSON
 
 #### Products
 
-| Method | Endpoint                 | Description                                      |
-| ------ | ------------------------ | ------------------------------------------------ |
-| GET    | `/products`              | Paginated list (includes inactive products)      |
-| POST   | `/products`              | Create product                                   |
-| GET    | `/products/{slug}`       | Show product                                     |
-| PUT/PATCH | `/products/{slug}`    | Update product (partial with `PATCH`)            |
-| DELETE | `/products/{slug}`       | Delete product (`204`)                           |
+| Method    | Endpoint           | Description                                 |
+| --------- | ------------------ | ------------------------------------------- |
+| GET       | `/products`        | Paginated list (includes inactive products) |
+| POST      | `/products`        | Create product                              |
+| GET       | `/products/{slug}` | Show product                                |
+| PUT/PATCH | `/products/{slug}` | Update product (partial with `PATCH`)       |
+| DELETE    | `/products/{slug}` | Delete product (`204`)                      |
 
 **Query (`GET /products`):** same as public shop — `category`, `search`, `per_page`, `sort` (`name` \| `price` \| `created_at`), `order`.
 
@@ -433,13 +433,13 @@ Deleting a product removes it from carts; order items keep `product_name` and se
 
 Admin-managed VAT rates. Product prices are **tax-inclusive**; checkout extracts VAT for info (`tax_amount`) and does not change `total`. One tax may be `is_default` (used when a product has no `tax_id`). Cannot delete the default tax or a tax still assigned to products.
 
-| Method | Endpoint | Description |
-| ------ | -------- | ----------- |
-| GET | `/taxes` | List all taxes |
-| POST | `/taxes` | Create |
-| GET | `/taxes/{id}` | Show |
-| PUT/PATCH | `/taxes/{id}` | Update (partial with `PATCH`) |
-| DELETE | `/taxes/{id}` | Delete (`204`); else `422` if default or in use |
+| Method    | Endpoint      | Description                                     |
+| --------- | ------------- | ----------------------------------------------- |
+| GET       | `/taxes`      | List all taxes                                  |
+| POST      | `/taxes`      | Create                                          |
+| GET       | `/taxes/{id}` | Show                                            |
+| PUT/PATCH | `/taxes/{id}` | Update (partial with `PATCH`)                   |
+| DELETE    | `/taxes/{id}` | Delete (`204`); else `422` if default or in use |
 
 **Fields:** `id`, `name`, `rate`, `is_default`, `is_active`, timestamps
 
@@ -451,12 +451,12 @@ Customer → **403**.
 
 Admins see **all** orders. Checkout stays on the customer API (`POST /orders`). Orders are not hard-deleted; change fulfillment `status` and/or `payment_status` instead.
 
-| Method | Endpoint | Description |
-| ------ | -------- | ----------- |
-| GET | `/orders` | Paginated list of all orders |
-| GET | `/orders/{id}` | Order detail (any order) |
-| PUT/PATCH | `/orders/{id}` | Update `status` and/or `payment_status` |
-| POST | `/orders/{id}/refund` | Full Stripe refund (paid Stripe orders only) |
+| Method    | Endpoint              | Description                                  |
+| --------- | --------------------- | -------------------------------------------- |
+| GET       | `/orders`             | Paginated list of all orders                 |
+| GET       | `/orders/{id}`        | Order detail (any order)                     |
+| PUT/PATCH | `/orders/{id}`        | Update `status` and/or `payment_status`      |
+| POST      | `/orders/{id}/refund` | Full Stripe refund (paid Stripe orders only) |
 
 **Query (`GET /orders`):** `per_page` (1–50, default 10), `status` (one of the fulfillment values below), `sort` (`total` \| `created_at`), `order` (`asc` \| `desc`). Invalid `status` → **422**.
 
@@ -481,13 +481,13 @@ Customer → **403**.
 
 #### Delivery methods
 
-| Method | Endpoint | Description |
-| ------ | -------- | ----------- |
-| GET | `/delivery-methods` | List all methods (including inactive) |
-| POST | `/delivery-methods` | Create |
-| GET | `/delivery-methods/{id}` | Show |
-| PUT/PATCH | `/delivery-methods/{id}` | Update (partial with `PATCH`) |
-| DELETE | `/delivery-methods/{id}` | Delete (`204`) |
+| Method    | Endpoint                 | Description                           |
+| --------- | ------------------------ | ------------------------------------- |
+| GET       | `/delivery-methods`      | List all methods (including inactive) |
+| POST      | `/delivery-methods`      | Create                                |
+| GET       | `/delivery-methods/{id}` | Show                                  |
+| PUT/PATCH | `/delivery-methods/{id}` | Update (partial with `PATCH`)         |
+| DELETE    | `/delivery-methods/{id}` | Delete (`204`)                        |
 
 **Create/update body:** `name`, `description` (nullable), `price`, `free_over` (nullable), `eta_days_min` / `eta_days_max` (nullable), `is_active` (optional).
 
@@ -495,13 +495,13 @@ Customer → **403**.
 
 #### Payment methods
 
-| Method | Endpoint | Description |
-| ------ | -------- | ----------- |
-| GET | `/payment-methods` | List all methods (including inactive) |
-| POST | `/payment-methods` | Create |
-| GET | `/payment-methods/{id}` | Show |
-| PUT/PATCH | `/payment-methods/{id}` | Update (partial with `PATCH`) |
-| DELETE | `/payment-methods/{id}` | Delete (`204`) |
+| Method    | Endpoint                | Description                           |
+| --------- | ----------------------- | ------------------------------------- |
+| GET       | `/payment-methods`      | List all methods (including inactive) |
+| POST      | `/payment-methods`      | Create                                |
+| GET       | `/payment-methods/{id}` | Show                                  |
+| PUT/PATCH | `/payment-methods/{id}` | Update (partial with `PATCH`)         |
+| DELETE    | `/payment-methods/{id}` | Delete (`204`)                        |
 
 **Create/update body:** `name`, `description` (nullable), `is_active` (optional).
 
@@ -511,10 +511,10 @@ Customer → **403**.
 
 Shop-wide configuration. Admin reads and updates key/value pairs. Keys are defined in code (`Setting::KEYS`); admin can only change values, not add new keys.
 
-| Method | Endpoint | Description |
-| ------ | -------- | ----------- |
-| GET | `/settings` | Return all settings as `{ key: value }` map |
-| PATCH | `/settings` | Bulk update one or more settings |
+| Method | Endpoint    | Description                                 |
+| ------ | ----------- | ------------------------------------------- |
+| GET    | `/settings` | Return all settings as `{ key: value }` map |
+| PATCH  | `/settings` | Bulk update one or more settings            |
 
 **PATCH body:**
 
@@ -537,11 +537,11 @@ Customer → **403**.
 
 List and manage registered users. No create or delete — registration stays on the public API; hard delete stays on `DELETE /profile`.
 
-| Method | Endpoint | Description |
-| ------ | -------- | ----------- |
-| GET | `/users` | Paginated list of all users |
-| GET | `/users/{id}` | User detail |
-| PUT/PATCH | `/users/{id}` | Update `is_active` only |
+| Method    | Endpoint      | Description                 |
+| --------- | ------------- | --------------------------- |
+| GET       | `/users`      | Paginated list of all users |
+| GET       | `/users/{id}` | User detail                 |
+| PUT/PATCH | `/users/{id}` | Update `is_active` only     |
 
 **Query (`GET /users`):** `per_page` (1–50, default 10), `active` (`1` = active, `0` = inactive; omit for all), `sort` (`role` \| `created_at`), `order` (`asc` \| `desc`).
 
