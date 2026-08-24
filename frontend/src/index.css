@@ -169,6 +169,21 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background font-serif text-foreground antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-sans;
+  }
+}
+
+@layer components {
+  .header-search-input:focus-visible {
+    border-color: color-mix(in oklab, var(--primary) 50%, transparent);
   }
 }
