@@ -1,9 +1,9 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 const Sidebar = () => {
   return (
     <aside className="hidden min-w-[180px] shrink-0 gap-4  md:block">
-      <h1 className="text-2xl font-bold mb-4 font-sans">Categories</h1>
+      <h2 className="text-2xl font-bold mb-4 font-sans">Categories</h2>
 
       <div className="flex flex-col gap-2">
         <Link to="/categories/1" className="text-sm text-muted-foreground hover:text-foreground">
