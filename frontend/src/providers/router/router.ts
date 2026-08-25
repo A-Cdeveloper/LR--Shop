@@ -19,6 +19,8 @@ import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import VerifyEmailPage from '@/pages/VerifyEmailPage';
 import { createBrowserRouter } from 'react-router';
+import ProtectedRoute from '@/components/layout/ProtectedRoute';
+import AuthLayout from '@/components/layout/AuthLayout';
 
 export const router = createBrowserRouter([
   {
@@ -28,22 +30,51 @@ export const router = createBrowserRouter([
     children: [
       { path: '/', Component: HomePage },
       { path: '/cart', Component: CartPage },
-      { path: '/checkout', Component: CheckoutPage },
-      { path: '/categories', Component: CategoriesPage },
-      { path: '/categories/:categoryName', Component: CategoryPage },
-      { path: '/products', Component: ProductsPage },
-      { path: '/products/:productName', Component: SingleProductPage },
+
+      {
+        path: '/categories',
+        children: [
+          { index: true, Component: CategoriesPage },
+          { path: ':categoryName', Component: CategoryPage },
+        ],
+      },
+
+      {
+        path: '/products',
+        children: [
+          { index: true, Component: ProductsPage },
+          { path: ':productName', Component: SingleProductPage },
+        ],
+      },
       { path: '/contact', Component: ContactPage },
       { path: '/terms', Component: TermsPage },
+      {
+        path: '/account',
+        Component: ProtectedRoute,
+        children: [
+          { index: true, Component: AccountPage }, // /account
+          { path: 'orders', Component: OrdersPage }, // /account/orders
+          { path: 'orders/:orderId', Component: OrderPage },
+        ],
+      },
+
+      {
+        path: '/checkout',
+        Component: ProtectedRoute,
+        children: [{ index: true, Component: CheckoutPage }],
+      },
+    ],
+  },
+
+  {
+    Component: AuthLayout,
+    children: [
       { path: '/login', Component: LoginPage },
       { path: '/register', Component: RegisterPage },
       { path: '/forgot-password', Component: ForgotPasswordPage },
       { path: '/reset-password', Component: ResetPasswordPage },
       { path: '/verify-email', Component: VerifyEmailPage },
-      { path: '/account', Component: AccountPage },
-      { path: '/account/orders', Component: OrdersPage },
-      { path: '/account/orders/:orderId', Component: OrderPage },
+      { path: '*', Component: NotFoundPage },
     ],
   },
-  { path: '*', Component: NotFoundPage },
 ]);
