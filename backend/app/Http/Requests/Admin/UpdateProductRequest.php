@@ -37,7 +37,7 @@ class UpdateProductRequest extends FormRequest
             ],
             'description' => ['sometimes', 'nullable', 'string'],
             'price' => ['sometimes', 'required', 'numeric', 'min:0'],
-            'sale_price' => ['sometimes', 'nullable', 'numeric', 'min:0', 'lt:price'],
+            'sale_price' => ['sometimes', 'nullable', 'numeric', 'min:0', 'lt:' . $this->input('price', $this->route('product')->price)],
             'tax_id' => ['sometimes', 'nullable', 'integer', 'exists:taxes,id'],
             'stock' => ['sometimes', 'required', 'integer', 'min:0'],
             'image' => ['sometimes', 'nullable', 'string', 'max:255'],
