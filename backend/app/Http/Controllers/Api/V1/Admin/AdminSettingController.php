@@ -34,13 +34,15 @@ class AdminSettingController extends Controller
             }
         });
 
+        Setting::flushCache();
+
         $settings = Setting::query()
             ->get(['key', 'value'])
             ->mapWithKeys(fn(Setting $setting) => [$setting->key => $setting->value]);
 
         return response()->json([
             'settings' => $settings,
-            'message' => 'Settings updated successfully.',
+            'message' => __('api.admin.settings_updated'),
         ]);
     }
 }

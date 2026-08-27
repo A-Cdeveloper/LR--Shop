@@ -39,5 +39,7 @@ class SettingsSeeder extends Seeder
                 ['value' => $value],
             );
         }
+
+        Setting::flushCache();
     }
 }

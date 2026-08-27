@@ -63,6 +63,7 @@ return [
         'tax_updated' => 'Porez je uspešno ažuriran.',
         'tax_delete_default' => 'Ne možete obrisati podrazumevani porez.',
         'tax_delete_has_products' => 'Ne možete obrisati porez koji je vezan za proizvode.',
+        'settings_updated' => 'Postavke su uspešno ažurirane.',
     ],
 
 ];

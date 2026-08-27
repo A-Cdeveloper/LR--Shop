@@ -63,6 +63,7 @@ return [
         'tax_updated' => 'Tax updated successfully.',
         'tax_delete_default' => 'Cannot delete the default tax.',
         'tax_delete_has_products' => 'Cannot delete tax assigned to products.',
+        'settings_updated' => 'Settings updated successfully.',
     ],
 
 ];

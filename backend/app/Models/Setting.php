@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
 
 class Setting extends Model
 {
@@ -32,11 +33,21 @@ class Setting extends Model
         'shop.products_per_page',
     ];
 
+    protected static function cached(): array
+    {
+        return Cache::rememberForever('settings', function () {
+            return static::query()->known()->pluck('value', 'key')->all();
+        });
+    }
+
     public static function get(string $key, mixed $default = null): mixed
     {
-        $value = static::query()->where('key', $key)->value('value');
+        return static::cached()[$key] ?? $default;
+    }
 
-        return $value ?? $default;
+    public static function flushCache(): void
+    {
+        Cache::forget('settings');
     }
 
     public function scopeKnown(Builder $query): Builder
