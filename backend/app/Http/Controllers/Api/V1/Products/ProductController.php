@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\V1\Products;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Products\ProductResource;
 use App\Models\Product;
-use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
@@ -33,14 +32,6 @@ class ProductController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
      * Display the specified resource.
      */
     public function show(Product $product)
@@ -52,21 +43,5 @@ class ProductController extends Controller
         $product->load(['category', 'tax']);
 
         return new ProductResource($product);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }
