@@ -43,7 +43,8 @@ class AdminUserController extends Controller
             ], 403);
         }
 
-        $user->update($request->validated());
+        $user->is_active = $request->validated('is_active');
+        $user->save();
 
         if (! $user->is_active) {
             $user->tokens()->delete();
