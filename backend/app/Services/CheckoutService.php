@@ -1,0 +1,175 @@
+<?php
+
+namespace App\Services;
+
+use App\Mail\OrderPlacedAdminMail;
+use App\Mail\OrderPlacedMail;
+use App\Models\DeliveryMethod;
+use App\Models\User;
+use App\Models\Order;
+use App\Models\PaymentMethod;
+use App\Models\Setting;
+use App\Models\Tax;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+
+class CheckoutService
+{
+    public function place(User $user, array $orderData): Order
+    {
+        $cart = $user->cart()->with('items.product.tax')->first();
+
+        if (! $cart || $cart->items->isEmpty()) {
+            abort(response()->json(['message' => __('api.orders.cart_empty')], 422));
+        }
+
+
+
+        $deliveryMethod = DeliveryMethod::query()
+            ->whereKey($orderData['delivery_method_id'])
+            ->where('is_active', true)
+            ->first();
+
+        if (! $deliveryMethod) {
+            abort(response()->json([
+                'message' => __('api.orders.invalid_delivery_method'),
+            ], 422));
+        }
+
+
+        $paymentMethod = PaymentMethod::query()
+            ->whereKey($orderData['payment_method_id'])
+            ->where('is_active', true)
+            ->first();
+
+        if (! $paymentMethod) {
+            abort(response()->json([
+                'message' => __('api.orders.invalid_payment_method'),
+            ], 422));
+        }
+
+
+
+        $order = DB::transaction(function () use ($orderData, $user, $cart, $deliveryMethod, $paymentMethod) {
+
+
+            foreach ($cart->items as $item) {
+                $product = $item->product()->lockForUpdate()->first();
+                if ($item->quantity > $product->stock) {
+                    abort(response()->json([
+                        'message' => __('api.cart.not_enough_stock'),
+                    ], 422));
+                }
+                $product->decrement('stock', $item->quantity);
+            }
+
+            $total = $cart->items->sum(function ($item) {
+                return $item->quantity * $item->product->effectivePrice();
+            });
+
+
+            $deliveryPrice = (float) $deliveryMethod->price;
+
+            if (
+                $deliveryMethod->free_over !== null
+                && $total >= (float) $deliveryMethod->free_over
+            ) {
+                $deliveryPrice = 0;
+            }
+
+
+            $defaultTax = Tax::default();
+            $orderTaxAmount = 0;
+
+
+            $total = round($total + $deliveryPrice, 2);
+
+
+
+            $order = Order::create([
+                'user_id' => $user->id,
+                'status' => 'pending',
+                'total' => round($total, 2),
+                'tax_amount' => 0,
+                'currency' => Setting::get('shop.currency', 'EUR'),
+                'delivery_method_id' => $deliveryMethod->id,
+                'delivery_method_name' => $deliveryMethod->name,
+                'delivery_price' => $deliveryPrice,
+                'payment_method_id' => $paymentMethod->id,
+                'payment_method_name' => $paymentMethod->name,
+                'payment_status' => 'pending',
+                ...$orderData,
+            ]);
+
+            foreach ($cart->items as $item) {
+                $unitPrice = $item->product->effectivePrice();
+                $subtotal = round($item->quantity * $unitPrice, 2);
+
+                $tax = $item->product->tax ?? $defaultTax;
+                $taxRate = $tax ? (float) $tax->rate : 0;
+                $taxName = $tax?->name;
+                $taxAmount = Tax::extractInclusive($subtotal, $taxRate);
+
+                $orderTaxAmount += $taxAmount;
+
+                $order->items()->create([
+                    'product_id' => $item->product_id,
+                    'product_name' => $item->product->name,
+                    'price' => $unitPrice,
+                    'original_price' => $item->product->onSale()
+                        ? (float) $item->product->price
+                        : null,
+                    'quantity' => $item->quantity,
+                    'subtotal' => $subtotal,
+                    'tax_name' => $taxName,
+                    'tax_rate' => $taxRate,
+                    'tax_amount' => $taxAmount,
+                ]);
+            }
+
+            $order->update([
+                'tax_amount' => round($orderTaxAmount, 2),
+            ]);
+
+            $cart->items()->delete();
+
+            return $order;
+        });
+
+
+        if ($paymentMethod->key === 'stripe') {
+            try {
+                $intent = app(StripePaymentService::class)->createPaymentIntent($order);
+
+                $order->update([
+                    'stripe_payment_intent_id' => $intent['id'],
+                    'stripe_client_secret' => $intent['client_secret'],
+                ]);
+            } catch (\Throwable $e) {
+                report($e);
+                app(OrderStockService::class)->transition($order, 'failed', 'failed');
+
+                abort(response()->json([
+                    'message' => __('api.orders.payment_failed'),
+                ], 502));
+            }
+        }
+
+
+
+        if ($paymentMethod->key !== 'stripe') {
+            Mail::to($user->email)->send(new OrderPlacedMail($order->load('items')));
+        }
+
+
+        $adminEmail = Setting::get('shop.email');
+
+        if (filled($adminEmail)) {
+            Mail::to($adminEmail)->send(
+                new OrderPlacedAdminMail($order->load('items'))
+            );
+        }
+
+        return $order->fresh()->load('items');
+    }
+}
