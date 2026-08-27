@@ -12,9 +12,12 @@ class ChangePasswordController extends Controller
     {
         $request->validated();
         $user = $request->user();
-        if(Hash::check($request->current_password, $user->password)) {
+        if (Hash::check($request->current_password, $user->password)) {
             $user->password = $request->new_password;
             $user->save();
+            $user->tokens()
+                ->where('id', '!=', $user->currentAccessToken()->id)
+                ->delete();
             return response()->json(['message' => __('api.auth.password_changed')], 200);
         } else {
             return response()->json(['message' => __('api.auth.current_password_incorrect')], 422);
