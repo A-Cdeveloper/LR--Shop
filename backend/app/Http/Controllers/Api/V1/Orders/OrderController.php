@@ -11,9 +11,9 @@ use App\Mail\OrderPlacedMail;
 use App\Models\DeliveryMethod;
 use App\Models\Order;
 use App\Models\PaymentMethod;
-use App\Models\Product;
 use App\Models\Setting;
 use App\Models\Tax;
+use App\Services\OrderStockService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -184,26 +184,7 @@ class OrderController extends Controller
                 ]);
             } catch (\Throwable $e) {
                 report($e);
-
-                DB::transaction(function () use ($order) {
-                    $order->load('items');
-
-                    foreach ($order->items as $item) {
-                        $product = Product::query()
-                            ->whereKey($item->product_id)
-                            ->lockForUpdate()
-                            ->first();
-
-                        if ($product) {
-                            $product->increment('stock', $item->quantity);
-                        }
-                    }
-
-                    $order->update([
-                        'status' => 'failed',
-                        'payment_status' => 'failed',
-                    ]);
-                });
+                app(OrderStockService::class)->transition($order, 'failed', 'failed');
 
                 return response()->json([
                     'message' => __('api.orders.payment_failed'),

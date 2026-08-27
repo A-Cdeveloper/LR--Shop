@@ -8,9 +8,8 @@ use App\Http\Resources\Orders\OrderResource;
 use App\Mail\OrderPlacedMail;
 use App\Mail\OrderStatusMail;
 use App\Models\Order;
-use App\Models\Product;
+use App\Services\OrderStockService;
 use App\Services\StripePaymentService;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
 
@@ -74,28 +73,10 @@ class AdminOrderController extends Controller
                 ->additional(['message' => __('api.orders.status_updated')]);
         }
 
-        DB::transaction(function () use ($order, $data, $statusChanged, $oldStatus) {
-            if ($statusChanged) {
-                $newStatus = $data['status'];
+        $newStatus = $data['status'] ?? $order->status;
+        $newPaymentStatus = $data['payment_status'] ?? $order->payment_status;
 
-                if ($this->shouldRestoreStock($oldStatus, $newStatus)) {
-                    $order->load('items');
-
-                    foreach ($order->items as $item) {
-                        $product = Product::query()
-                            ->whereKey($item->product_id)
-                            ->lockForUpdate()
-                            ->first();
-
-                        if ($product) {
-                            $product->increment('stock', $item->quantity);
-                        }
-                    }
-                }
-            }
-
-            $order->update(collect($data)->only(['status', 'payment_status'])->all());
-        });
+        app(OrderStockService::class)->transition($order, $newStatus, $newPaymentStatus);
 
         $order = $order->fresh()->load('items');
 
@@ -137,27 +118,7 @@ class AdminOrderController extends Controller
 
         $oldStatus = $order->status;
 
-        DB::transaction(function () use ($order, $oldStatus) {
-            if ($this->shouldRestoreStock($oldStatus, 'refunded')) {
-                $order->load('items');
-
-                foreach ($order->items as $item) {
-                    $product = Product::query()
-                        ->whereKey($item->product_id)
-                        ->lockForUpdate()
-                        ->first();
-
-                    if ($product) {
-                        $product->increment('stock', $item->quantity);
-                    }
-                }
-            }
-
-            $order->update([
-                'status' => 'refunded',
-                'payment_status' => 'refunded',
-            ]);
-        });
+        app(OrderStockService::class)->transition($order, 'refunded', 'refunded');
 
         $order = $order->fresh()->load('items');
 
@@ -165,12 +126,5 @@ class AdminOrderController extends Controller
 
         return (new OrderResource($order))
             ->additional(['message' => __('api.orders.refunded')]);
-    }
-
-    // Private methods
-    private function shouldRestoreStock(string $from, string $to): bool
-    {
-        return in_array($from, Order::STOCK_HELD_STATUSES, true)
-            && in_array($to, Order::STOCK_RELEASED_STATUSES, true);
     }
 }

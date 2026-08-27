@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Stripe;
 use App\Http\Controllers\Controller;
 use App\Mail\OrderPlacedMail;
 use App\Models\Order;
+use App\Services\OrderStockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Stripe\Event;
@@ -68,7 +69,7 @@ class StripeWebhookController extends Controller
             return;
         }
 
-        $order->update(['payment_status' => 'failed']);
+        app(OrderStockService::class)->transition($order, 'failed', 'failed');
     }
 
     /**
@@ -91,7 +92,7 @@ class StripeWebhookController extends Controller
             return;
         }
 
-        $order->update(['payment_status' => 'refunded']);
+        app(OrderStockService::class)->transition($order, 'refunded', 'refunded');
     }
 
 
