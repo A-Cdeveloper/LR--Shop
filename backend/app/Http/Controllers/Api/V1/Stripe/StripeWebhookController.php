@@ -53,9 +53,11 @@ class StripeWebhookController extends Controller
 
         $order->update(['payment_status' => 'paid']);
 
-        Mail::to($order->user->email)->send(
-            new OrderPlacedMail($order->load('items'))
-        );
+        if ($order->shouldNotifyCustomer()) {
+            Mail::to($order->user->email)->send(
+                new OrderPlacedMail($order->load('items'))
+            );
+        }
     }
 
     /**

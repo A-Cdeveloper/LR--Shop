@@ -80,11 +80,11 @@ class AdminOrderController extends Controller
 
         $order = $order->fresh()->load('items');
 
-        if ($statusChanged) {
+        if ($statusChanged && $order->shouldNotifyCustomer()) {
             Mail::to($order->user->email)->send(new OrderStatusMail($order, $oldStatus));
         }
 
-        if ($paymentStatusChanged && $order->payment_status === 'paid') {
+        if ($paymentStatusChanged && $order->payment_status === 'paid' && $order->shouldNotifyCustomer()) {
             Mail::to($order->user->email)->send(new OrderPlacedMail($order));
         }
 
@@ -122,7 +122,9 @@ class AdminOrderController extends Controller
 
         $order = $order->fresh()->load('items');
 
-        Mail::to($order->user->email)->send(new OrderStatusMail($order, $oldStatus));
+        if ($order->shouldNotifyCustomer()) {
+            Mail::to($order->user->email)->send(new OrderStatusMail($order, $oldStatus));
+        }
 
         return (new OrderResource($order))
             ->additional(['message' => __('api.orders.refunded')]);
