@@ -45,6 +45,10 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
+        if (!$product->is_active) {
+            return response()->json(['message' => __('api.common.not_found')], 404);
+        }
+
         $product->load(['category', 'tax']);
 
         return new ProductResource($product);

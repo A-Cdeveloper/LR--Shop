@@ -31,6 +31,7 @@ return [
         'item_not_found' => 'Cart item not found',
         'not_enough_stock' => 'Not enough stock.',
         'not_enough_stock_for_product' => 'Not enough stock for this product.',
+        'product_not_active' => 'Product is not active.',
     ],
 
     'orders' => [

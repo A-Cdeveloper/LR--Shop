@@ -29,6 +29,10 @@ class CartItemController extends Controller
         $quantity = $request->validated()['quantity'];
         $product = Product::findOrFail($productId);
 
+        if (!$product->is_active) {
+            return response()->json(['message' => __('api.cart.product_not_active')], 422);
+        }
+
         $item = $cart->items()->where('product_id', $productId)->first();
         $alreadyInCart = $item?->quantity ?? 0;
 

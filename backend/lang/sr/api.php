@@ -31,6 +31,7 @@ return [
         'item_not_found' => 'Stavka korpe nije pronađena.',
         'not_enough_stock' => 'Nema dovoljno na stanju.',
         'not_enough_stock_for_product' => 'Nema dovoljno na stanju za ovaj proizvod.',
+        'product_not_active' => 'Proizvod nije aktivan.',
     ],
 
     'orders' => [
