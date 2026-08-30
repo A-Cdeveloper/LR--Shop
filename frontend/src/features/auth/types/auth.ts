@@ -19,3 +19,8 @@ export type LoginSuccessResponse = {
     token: string;
   };
 };
+
+export type RegisterSuccessResponse = {
+  data: AuthUser;
+  message: string;
+};
