@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { getApiError, getApiErrorMessages } from '@/lib/apiError';
 
 import { useLogin } from '../hooks/useLogin';
-import type { LoginCredentials } from '../types/auth';
-import { loginSchema } from '../schemas/loginSchema';
+import { loginSchema, type LoginCredentials } from '../schemas/loginSchema';
+import { getZodFieldErrors } from '@/lib/formErrors';
 
 const LoginForm = () => {
   const { loginMutation, isPending, error } = useLogin();
@@ -25,16 +25,7 @@ const LoginForm = () => {
     const result = loginSchema.safeParse(Object.fromEntries(formData));
 
     if (!result.success) {
-      const nextFieldErrors: Partial<Record<keyof LoginCredentials, string>> = {};
-
-      for (const issue of result.error.issues) {
-        const field = issue.path[0] as keyof LoginCredentials;
-        if (!nextFieldErrors[field]) {
-          nextFieldErrors[field] = issue.message;
-        }
-      }
-
-      setFieldErrors(nextFieldErrors);
+      setFieldErrors(getZodFieldErrors(result.error));
       return;
     }
 

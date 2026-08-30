@@ -2,7 +2,8 @@ import { useMutation } from '@tanstack/react-query';
 import { login } from '../api/authApi';
 import type { AxiosError } from 'axios';
 import type { ApiErrorResponse } from '@/lib/apiError';
-import type { AuthUser, LoginCredentials } from '../types/auth';
+import type { LoginCredentials } from '../schemas/loginSchema';
+import type { AuthUser } from '../types/auth';
 
 type LoginError = AxiosError<ApiErrorResponse>;
 

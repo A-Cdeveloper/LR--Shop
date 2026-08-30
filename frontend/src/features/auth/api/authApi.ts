@@ -1,6 +1,7 @@
 import { api } from '@/lib/api';
 import { setToken } from '@/lib/token';
-import type { AuthUser, LoginCredentials, LoginSuccessResponse } from '../types/auth';
+import type { LoginCredentials } from '../schemas/loginSchema';
+import type { AuthUser, LoginSuccessResponse } from '../types/auth';
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
