@@ -1,4 +1,4 @@
-// import ErrorMessage from '@/components/ErrorMessage';
+import ErrorFallback from '@/components/layout/common/ErrorFallback';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 
 type ErrorBoundaryProps = {
@@ -29,11 +29,12 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   render() {
     if (this.state.error) {
       return (
-        // <ErrorMessage
-        //   message={this.state.error.message || 'Something went wrong'}
-        //   onRetry={this.handleReset}
-        // />
-        <div>Error</div>
+        <>
+          <ErrorFallback
+            message={this.state.error.message || 'Something went wrong'}
+            onRetry={this.handleReset}
+          />
+        </>
       );
     }
 

@@ -68,6 +68,7 @@ export const router = createBrowserRouter([
 
   {
     Component: AuthLayout,
+    ErrorBoundary: ErrorPage,
     children: [
       { path: '/login', Component: LoginPage },
       { path: '/register', Component: RegisterPage },
