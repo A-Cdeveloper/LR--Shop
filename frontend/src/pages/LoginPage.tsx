@@ -1,5 +1,11 @@
+import LoginForm from '@/features/auth/components/LoginForm';
+
 const LoginPage = () => {
-  return <h1 className="text-6xl font-bold">Login</h1>;
+  return (
+    <div className="flex justify-center items-center h-screen">
+      <LoginForm />
+    </div>
+  );
 };
 
 export default LoginPage;
