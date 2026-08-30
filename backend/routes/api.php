@@ -43,7 +43,6 @@ Route::prefix('v1')->group(function () {
     Route::post('register', [AuthController::class, 'register'])
         ->middleware('throttle:5,1');
     Route::get('email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
-        ->middleware('signed')
         ->name('verification.verify');
     Route::post('email/verification-notification', [EmailVerificationController::class, 'resend'])
         ->middleware('throttle:3,1');

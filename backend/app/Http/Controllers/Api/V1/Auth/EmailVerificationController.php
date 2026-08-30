@@ -13,20 +13,26 @@ class EmailVerificationController extends Controller
 {
     public function verify(Request $request, string $id, string $hash)
     {
-        $user = User::findOrFail($id);
+        $frontendUrl = rtrim(config('app.frontend_url'), '/');
 
-        if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
-            abort(403, __('api.auth.invalid_verification_link'));
+        if (! $request->hasValidSignature()) {
+            return redirect()->away($frontendUrl . '/verify-email?status=error');
         }
 
-        if (! $user->hasVerifiedEmail()) {
-            $user->markEmailAsVerified();
-            event(new Verified($user));
+        $user = User::find($id);
+
+        if (! $user || ! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+            return redirect()->away($frontendUrl . '/verify-email?status=error');
         }
 
-        return response()->json([
-            'message' => __('api.auth.email_verified'),
-        ]);
+        if ($user->hasVerifiedEmail()) {
+            return redirect()->away($frontendUrl . '/verify-email?status=already_verified');
+        }
+
+        $user->markEmailAsVerified();
+        event(new Verified($user));
+
+        return redirect()->away($frontendUrl . '/verify-email?status=success');
     }
 
 
