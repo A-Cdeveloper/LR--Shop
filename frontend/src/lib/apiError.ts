@@ -1,11 +1,13 @@
 import axios from 'axios';
 export type ApiMessageError = {
   message: string;
+  code?: string;
 };
 
 export type ApiValidationError = {
   message: string;
   errors: Record<string, string[]>;
+  code?: string;
 };
 
 export type ApiErrorResponse = ApiMessageError | ApiValidationError;

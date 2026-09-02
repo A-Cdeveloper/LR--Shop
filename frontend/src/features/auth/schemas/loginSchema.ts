@@ -1,15 +1,10 @@
 import { z } from 'zod';
 
+import { emailSchema, basicPasswordSchema } from './commonSchema';
+
 export const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email is required.')
-    .email('Enter a valid email address.')
-    .max(255, 'Email must be at most 255 characters.'),
-  password: z
-    .string()
-    .min(1, 'Password is required.')
-    .min(8, 'Password must be at least 8 characters.'),
+  email: emailSchema,
+  password: basicPasswordSchema,
 });
 
 export type LoginCredentials = z.infer<typeof loginSchema>;
