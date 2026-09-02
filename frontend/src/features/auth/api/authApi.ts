@@ -1,5 +1,5 @@
 import { api } from '@/lib/api';
-import { setToken } from '@/lib/token';
+import { clearToken, setToken } from '@/lib/token';
 import type { LoginCredentials } from '../schemas/loginSchema';
 import type { AuthUser, LoginSuccessResponse, RegisterSuccessResponse } from '../types/auth';
 import type { RegisterCredentials } from '../schemas/registerSchema';
@@ -69,4 +69,16 @@ export async function resendVerificationEmail(email: string): Promise<void> {
   }
 
   await api.post('/email/verification-notification', { email });
+}
+
+/**
+ * Logout the user
+ * @returns The logout response
+ */
+export async function logout(): Promise<void> {
+  try {
+    await api.post('/logout');
+  } finally {
+    clearToken();
+  }
 }
