@@ -29,7 +29,7 @@ const VerifyEmailPage = () => {
   const status = searchParams.get('status');
   const location = useLocation();
   const email = (location.state as { email?: string } | null)?.email ?? '';
-  const { resendVerification, isPending, isSuccess, error } = useResendVerification(email);
+  const { resendVerification, isPending, isSuccess, error } = useResendVerification();
   const resendErrorMessages = getApiErrorMessages(getApiError(error));
 
   if (status === 'success') {
@@ -72,7 +72,7 @@ const VerifyEmailPage = () => {
         message="If you didn't receive the email, please check your spam folder or request a new verification email."
       />
       {email && (
-        <Button onClick={() => resendVerification()} variant="custom" disabled={isPending}>
+        <Button onClick={() => resendVerification(email)} variant="custom" disabled={isPending}>
           {isPending ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
