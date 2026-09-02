@@ -5,14 +5,14 @@ E-commerce platform built with Laravel and React.
 ## Stack
 
 - **Backend:** Laravel 12, MySQL, Sanctum (Bearer tokens)
-- **Frontend:** React, Vite (planned)
+- **Frontend:** React, Vite, TypeScript, React Router, TanStack Query, Tailwind CSS v4, Zod
 
 ## Structure
 
 ```text
 LR--Shop/
 ├── backend/     # REST API
-└── frontend/    # Storefront (planned)
+└── frontend/    # React storefront
 ```
 
 ## Backend status
@@ -38,7 +38,7 @@ Implemented:
 - Order status change email to customer when admin updates fulfillment `status` (Mailpit locally)
 - CORS configured via `FRONTEND_URL` env variable (default `http://localhost:5173`)
 - API locale: `en` / `sr` via `Accept-Language`, `?lang=`, or `shop.locale` (API messages, validation, emails)
-- Profile API (GET/PATCH/DELETE — hard delete; admins blocked)
+- Profile API (GET/PATCH/DELETE — soft delete; admins blocked)
 - E.164 phone validation on profile and checkout
 - Clear cart (`DELETE /cart`)
 - User roles (`customer` / `admin`) and admin middleware
@@ -53,11 +53,21 @@ Implemented:
 
 Planned:
 
-- React storefront
+- Remaining storefront pages and catalog UI
 
 ## API
 
 Base URL: `http://localhost:8000/api/v1`
+
+Interactive API documentation (Scramble):
+
+`http://localhost:8000/docs/api`
+
+### Authentication
+
+The frontend stores the Sanctum Bearer token in `localStorage` and sends it
+automatically through the shared Axios client. Protected routes include
+account pages, checkout, profile, orders, logout, and change-password.
 
 ### Locale
 
@@ -133,7 +143,7 @@ Accept: application/json
 
 **Rate limits (public auth):** `login`, `register`, `reset-password` → 5 requests/minute; `forgot-password`, `email/verification-notification` → 3/minute. Over limit → **429**. Protected customer/admin routes use `throttle:api` (60/minute).
 
-**Email verification:** `POST /register` creates the user with `email_verified_at = null` and sends a signed link (Mailpit locally). Open the full URL from the mail (browser or GET in Postman). Success: `"Email verified."` — still **no** token. Then `POST /login`. Unverified login → **403** `Please verify your email first.` Inactive account (`is_active = false`) → **403** `Your account is not active. Please contact support.` Invalid credentials still **401**. The verify URL includes `expires` and `signature`; do not build it by hand.
+**Email verification:** `POST /register` creates the user with `email_verified_at = null` and sends a signed link (Mailpit locally). Open the full URL from the mail in a browser. After backend verification, the browser is redirected to `FRONTEND_URL/verify-email?status=success`. Reusing a valid link redirects with `status=already_verified`; an invalid or expired link redirects with `status=error`. Then `POST /login`. Unverified login → **403** `Please verify your email first.` Inactive account (`is_active = false`) → **403** `Your account is not active. Please contact support.` Invalid credentials still **401**. The verify URL includes `expires` and `signature`; do not build it by hand.
 
 ### Profile
 
@@ -143,9 +153,9 @@ Logged-in users only (`auth:sanctum`).
 | ------ | ---------- | ---- | ------------------------------------------------ |
 | GET    | `/profile` | yes  | Current user (includes role and shipping fields) |
 | PATCH  | `/profile` | yes  | Partial update (`sometimes` fields)              |
-| DELETE | `/profile` | yes  | Hard delete account (`204`); admin → `403`       |
+| DELETE | `/profile` | yes  | Soft-delete account (`204`); admin → `403`       |
 
-**DELETE `/profile`:** removes the user, Sanctum tokens, cart, and orders (DB cascade). Admin accounts cannot be deleted this way.
+**DELETE `/profile`:** soft-deletes the user and revokes their Sanctum tokens. Orders remain available for historical purposes. Admin accounts cannot be deleted this way.
 
 **Profile fields:** `id`, `name`, `email`, `role`, `phone`, `shipping_address`, `city`, `state`, `zip`, `country`, timestamps. `token` only on login.
 
@@ -535,7 +545,7 @@ Customer → **403**.
 
 #### Users
 
-List and manage registered users. No create or delete — registration stays on the public API; hard delete stays on `DELETE /profile`.
+List and manage registered users. No create or delete — registration stays on the public API; account deletion stays on `DELETE /profile`.
 
 | Method    | Endpoint      | Description                 |
 | --------- | ------------- | --------------------------- |
@@ -581,9 +591,7 @@ php artisan key:generate
 # configure MySQL in .env
 php artisan migrate
 php artisan storage:link
-php artisan db:seed --class=CategorySeeder
-php artisan db:seed --class=ProductSeeder
-php artisan db:seed --class=CartSeeder
+php artisan db:seed
 php artisan serve
 ```
 
@@ -602,6 +610,8 @@ cd frontend
 npm install
 npm run dev
 ```
+
+The frontend runs by default at `http://localhost:5173`.
 
 ## Later polish
 
@@ -626,10 +636,11 @@ Things we skipped on purpose (MVP). Do these before production / when polishing:
 Use [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```text
-feat: add cart endpoints
-fix: correct product sort whitelist
-docs: update readme file
+feat(backend): add cart endpoints
+fix(backend): correct product sort whitelist
+feat(frontend): add login form
+docs(frontend): update README file
 chore: initial setup
 ```
 
-README-only changes: `docs: update readme file`
+README-only changes: `docs(frontend): update README file` or `docs(backend): update README file`
