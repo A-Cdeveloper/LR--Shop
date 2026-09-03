@@ -33,6 +33,15 @@ class Setting extends Model
         'shop.products_per_page',
     ];
 
+    public const PUBLIC_KEYS = [
+        'shop.name',
+        'shop.email',
+        'shop.phone',
+        'shop.address_line1',
+        'shop.address_line2',
+        'shop.city',
+    ];
+
     protected static function cached(): array
     {
         return Cache::rememberForever('settings', function () {

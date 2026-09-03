@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\V1\Admin\AdminDeliveryMethodController;
 use App\Http\Controllers\Api\V1\Admin\AdminPaymentMethodController;
 use App\Http\Controllers\Api\V1\Admin\AdminTaxController;
 use App\Http\Controllers\Api\V1\PaymentMethodController;
+use App\Http\Controllers\Api\V1\PublicSettingsController;
 use App\Http\Controllers\Api\V1\Stripe\StripeWebhookController;
 
 // Public
@@ -39,6 +40,8 @@ Route::prefix('v1')->group(function () {
     Route::get('delivery-methods', [DeliveryMethodController::class, 'index']);
     Route::get('payment-methods', [PaymentMethodController::class, 'index']);
     Route::post('stripe/webhook', [StripeWebhookController::class, 'handle']);
+
+    Route::get('shop-settings', [PublicSettingsController::class, 'index'])->name('settings.index');
 
     Route::post('register', [AuthController::class, 'register'])
         ->middleware('throttle:5,1');
@@ -76,6 +79,8 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::post('orders', [OrderController::class, 'store']);
         Route::get('orders', [OrderController::class, 'index']);
         Route::get('orders/{order}', [OrderController::class, 'show']);
+
+        // Settings 
     });
 });
 
