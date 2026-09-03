@@ -17,7 +17,14 @@ class PublicSettingsController extends Controller
             ->mapWithKeys(fn(Setting $setting) => [$setting->key => $setting->value]);
 
         return response()->json([
-            'settings' => $settings,
+            'settings' => [
+                'name' => $settings->get('shop.name'),
+                'email' => $settings->get('shop.email'),
+                'phone' => $settings->get('shop.phone'),
+                'address_line1' => $settings->get('shop.address_line1'),
+                'address_line2' => $settings->get('shop.address_line2'),
+                'city' => $settings->get('shop.city'),
+            ],
         ]);
     }
 }
