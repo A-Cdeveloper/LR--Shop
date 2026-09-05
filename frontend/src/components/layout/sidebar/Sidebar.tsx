@@ -1,30 +1,9 @@
-import { Link } from 'react-router';
+import CategoriesList from '@/features/categories/components/CategoriesList';
 
 const Sidebar = () => {
   return (
-    <aside className="hidden min-w-[180px] shrink-0 gap-4  md:block">
-      <h2 className="text-2xl font-bold mb-4 font-sans">Categories</h2>
-
-      <div className="flex flex-col gap-2">
-        <Link
-          to="/categories/category1"
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          Category 1
-        </Link>
-        <Link
-          to="/categories/category2"
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          Category 2
-        </Link>
-        <Link
-          to="/categories/category3"
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          Category 3
-        </Link>
-      </div>
+    <aside className="hidden max-w-[180px] shrink-0 gap-4  md:block pe-5">
+      <CategoriesList />
     </aside>
   );
 };

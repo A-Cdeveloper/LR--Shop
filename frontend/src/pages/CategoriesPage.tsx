@@ -1,5 +1,7 @@
+import CategoriesGrid from '@/features/categories/components/CategoriesGrid';
+
 const CategoriesPage = () => {
-  return <div>Categories</div>;
+  return <CategoriesGrid />;
 };
 
 export default CategoriesPage;
