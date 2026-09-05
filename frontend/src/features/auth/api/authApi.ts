@@ -1,7 +1,7 @@
 import { api } from '@/lib/api';
 import { clearToken, setToken } from '@/lib/token';
 import type { LoginCredentials } from '../schemas/loginSchema';
-import type { AuthUser, LoginSuccessResponse, RegisterSuccessResponse } from '../types/auth';
+import type { AuthUser, LoginSuccessResponse, RegisterSuccessResponse } from '@shop/api-types';
 import type { RegisterCredentials } from '../schemas/registerSchema';
 import type { ResetPassCredentials } from '../schemas/resetPassSchema';
 import type { ForgotPassCredentials } from '../schemas/forgotPassSchema';

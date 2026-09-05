@@ -3,7 +3,7 @@ import { login } from '../api/authApi';
 import type { AxiosError } from 'axios';
 import type { ApiErrorResponse } from '@/lib/apiError';
 import type { LoginCredentials } from '../schemas/loginSchema';
-import type { AuthUser } from '../types/auth';
+import type { AuthUser } from '@shop/api-types';
 
 type LoginError = AxiosError<ApiErrorResponse>;
 
