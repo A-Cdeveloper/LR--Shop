@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button';
+import { Button } from '@shop/ui';
 import { useLogout } from '@/features/auth/hooks/useLogout';
 import { getToken } from '@/lib/token';
 import { Loader2, LogIn, LogOut, User } from 'lucide-react';

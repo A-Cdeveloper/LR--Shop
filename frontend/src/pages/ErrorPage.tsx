@@ -1,5 +1,5 @@
 import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router';
-import { Button } from '@/components/ui/button';
+import { Button } from '@shop/ui';
 
 const ErrorPage = () => {
   const error = useRouteError();

@@ -1,4 +1,4 @@
-import AppLayout from '@/components/layout/AppLayout';
+import AppLayout from '@/components/AppLayout';
 import HomePage from '@/pages/HomePage';
 import ErrorPage from '@/pages/ErrorPage';
 import NotFoundPage from '@/pages/NotFoundPage';
@@ -19,8 +19,8 @@ import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import VerifyEmailPage from '@/pages/VerifyEmailPage';
 import { createBrowserRouter } from 'react-router';
-import ProtectedRoute from '@/components/layout/ProtectedRoute';
-import AuthLayout from '@/components/layout/AuthLayout';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import AuthLayout from '@/components/AuthLayout';
 
 export const router = createBrowserRouter([
   {

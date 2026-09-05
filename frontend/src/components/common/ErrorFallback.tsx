@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button';
+import { Button } from '@shop/ui';
 
 type ErrorFallbackProps = {
   message: string;

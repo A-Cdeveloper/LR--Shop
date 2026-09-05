@@ -1,7 +1,7 @@
 import { Loader2 } from 'lucide-react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@shop/ui';
 import { getApiError, getApiErrorMessages } from '@/lib/apiError';
 import { useResendVerification } from '@/features/auth/hooks/useResendVerification';
 

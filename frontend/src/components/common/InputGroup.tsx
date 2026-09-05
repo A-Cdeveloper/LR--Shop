@@ -1,7 +1,6 @@
 import { forwardRef, type ComponentProps, type HTMLInputTypeAttribute } from 'react';
 
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Input, Label } from '@shop/ui';
 
 type InputCustumProps = ComponentProps<'input'> & {
   label: string;

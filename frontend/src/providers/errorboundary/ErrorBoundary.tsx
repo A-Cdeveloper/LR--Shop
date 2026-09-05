@@ -1,4 +1,4 @@
-import ErrorFallback from '@/components/layout/common/ErrorFallback';
+import ErrorFallback from '@/components/common/ErrorFallback';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 
 type ErrorBoundaryProps = {

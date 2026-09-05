@@ -1,5 +1,5 @@
-import InputCustum from '@/components/layout/common/InputGroup';
-import { Button } from '@/components/ui/button';
+import InputCustum from '@/components/common/InputGroup';
+import { Button } from '@shop/ui';
 import { Loader2 } from 'lucide-react';
 import { useForgotPassword } from '../hooks/useForgotPassword';
 import { forgotPassSchema, type ForgotPassCredentials } from '../schemas/forgotPassSchema';

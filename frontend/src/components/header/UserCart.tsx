@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ShoppingBag } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@shop/ui';
 
 const iconButtonClassName =
   'flex size-12 items-center justify-center rounded-full bg-muted text-foreground transition-colors hover:bg-muted/80';

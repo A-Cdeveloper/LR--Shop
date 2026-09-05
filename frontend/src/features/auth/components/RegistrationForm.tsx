@@ -2,8 +2,8 @@ import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import InputCustum from '@/components/layout/common/InputGroup';
-import { Button } from '@/components/ui/button';
+import InputCustum from '@/components/common/InputGroup';
+import { Button } from '@shop/ui';
 import { getApiError, getApiErrorMessages } from '@/lib/apiError';
 
 import { useRegister } from '../hooks/useRegister';
