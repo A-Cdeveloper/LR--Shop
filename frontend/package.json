@@ -26,7 +26,8 @@
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.3",
     "zod": "^4.5.4",
-    "@shop/api-types": "0.0.0"
+    "@shop/api-types": "0.0.0",
+    "@shop/ui": "0.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
