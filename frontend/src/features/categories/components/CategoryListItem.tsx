@@ -1,5 +1,5 @@
+import type { Category } from '@shop/api-types';
 import { NavLink } from 'react-router-dom';
-import type { Category } from '../types/categories';
 
 type CategoryListItemProps = {
   category: Category;

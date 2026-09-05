@@ -1,5 +1,5 @@
 import { api } from '@/lib/api';
-import type { CategoriesResponse, Category, CategoryResponse } from '../types/categories';
+import type { CategoriesResponse, Category, CategoryResponse } from '@shop/api-types';
 
 export const getCategories = async (): Promise<CategoriesResponse> => {
   const response = await api.get<CategoriesResponse>('/categories');
