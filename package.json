@@ -1,6 +1,10 @@
 {
   "name": "lr-shop",
   "private": true,
+  "workspaces": [
+    "frontend",
+    "packages/*"
+  ],
   "scripts": {
     "prepare": "husky",
     "lint": "npm run lint --prefix frontend",
