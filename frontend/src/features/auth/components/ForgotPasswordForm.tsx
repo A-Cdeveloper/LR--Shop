@@ -5,8 +5,8 @@ import { useForgotPassword } from '../hooks/useForgotPassword';
 import { forgotPassSchema, type ForgotPassCredentials } from '../schemas/forgotPassSchema';
 import { useState } from 'react';
 import { getZodFieldErrors } from '@/lib/formErrors';
-import { getApiError, getApiErrorMessages } from '@/lib/apiError';
 import FormWrapper from './FormWrapper';
+import ErrorMessages from '@/components/common/ErrorMessages';
 
 const ForgotPasswordForm = () => {
   const { forgotPass, isPending, error, isSuccess } = useForgotPassword();
@@ -14,8 +14,6 @@ const ForgotPasswordForm = () => {
     Partial<Record<keyof ForgotPassCredentials, string>>
   >({});
   const [successMessage, setSuccessMessage] = useState<string>('');
-
-  const apiErrorMessages = getApiErrorMessages(getApiError(error));
 
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -59,13 +57,7 @@ const ForgotPasswordForm = () => {
                 'Request new password'
               )}
             </Button>
-            {apiErrorMessages.length > 0 && (
-              <div className="space-y-1 text-xs bg-destructive/10 p-3 text-destructive text-center">
-                {apiErrorMessages.map((message) => (
-                  <p key={message}>{message}</p>
-                ))}
-              </div>
-            )}
+            {error && <ErrorMessages error={error} className="bg-destructive/10" />}
           </>
         )}
         {isSuccess && (

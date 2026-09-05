@@ -1,27 +1,23 @@
-import { Link } from 'react-router-dom';
+import Loading from '@/components/common/Loading';
 import { useCategories } from '../hooks/useCategories';
 import CategoryListItem from './CategoryListItem';
+import ErrorMessages from '@/components/common/ErrorMessages';
 
 const CategoriesList = () => {
   const { categories, isLoading, error } = useCategories();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <Loading className="w-6 h-6" title="Loading categories..." />;
   }
 
   if (error) {
-    return <div>Error: {error.message}</div>;
+    return <ErrorMessages error={error} />;
   }
   return (
     <div className="flex flex-col gap-2">
-      <>
-        <Link to="/categories" className="text-sm text-muted-foreground hover:text-foreground">
-          All Categories
-        </Link>
-        {categories?.map((category) => (
-          <CategoryListItem key={category.id} category={category} />
-        ))}
-      </>
+      {categories?.map((category) => (
+        <CategoryListItem key={category.id} category={category} />
+      ))}
     </div>
   );
 };

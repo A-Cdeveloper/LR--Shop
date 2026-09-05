@@ -4,13 +4,13 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import InputCustum from '@/components/common/InputGroup';
 import { Button } from '@shop/ui';
-import { getApiError, getApiErrorMessages } from '@/lib/apiError';
 
 import { useRegister } from '../hooks/useRegister';
 import { registerSchema } from '../schemas/registerSchema';
 import { getZodFieldErrors } from '@/lib/formErrors';
 import type { RegisterCredentials } from '../schemas/registerSchema';
 import FormWrapper from './FormWrapper';
+import ErrorMessages from '@/components/common/ErrorMessages';
 
 const RegistrationForm = () => {
   const { registerMutation, isPending, error } = useRegister();
@@ -18,8 +18,6 @@ const RegistrationForm = () => {
   const [fieldErrors, setFieldErrors] = useState<
     Partial<Record<keyof RegisterCredentials, string>>
   >({});
-
-  const apiErrorMessages = getApiErrorMessages(getApiError(error));
 
   const handleSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -81,13 +79,7 @@ const RegistrationForm = () => {
           )}
         </Button>
 
-        {apiErrorMessages.length > 0 && (
-          <div className="space-y-1 text-xs bg-destructive/10 p-3 text-destructive text-center">
-            {apiErrorMessages.map((message) => (
-              <p key={message}>{message}</p>
-            ))}
-          </div>
-        )}
+        {error && <ErrorMessages error={error} className="bg-destructive/10" />}
 
         <p className="text-muted-foreground mt-3 text-center">
           Don&apos;t have an account?{' '}

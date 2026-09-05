@@ -7,7 +7,8 @@ import InputCustum from '@/components/common/InputGroup';
 import { Button } from '@shop/ui';
 import { Loader2 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { getApiError, getApiErrorMessages } from '@/lib/apiError';
+import { getApiError } from '@/lib/apiError';
+import ErrorMessages from '@/components/common/ErrorMessages';
 
 const ResetPasswordForm = () => {
   const [searchParams] = useSearchParams();
@@ -21,7 +22,6 @@ const ResetPasswordForm = () => {
   const [successMessage, setSuccessMessage] = useState('');
 
   const apiError = getApiError(error);
-  const apiErrorMessages = getApiErrorMessages(apiError);
   const isInvalidToken =
     apiError !== null && 'code' in apiError && apiError.code === 'reset_token_invalid';
 
@@ -73,25 +73,15 @@ const ResetPasswordForm = () => {
                 'Reset password'
               )}
             </Button>
-            {apiErrorMessages.length > 0 && !isInvalidToken && (
-              <div className="space-y-1 text-xs bg-destructive/10 p-3 text-destructive text-center">
-                {apiErrorMessages.map((message) => (
-                  <p key={message}>{message}</p>
-                ))}
-              </div>
+            {error && !isInvalidToken && (
+              <ErrorMessages error={error} className="bg-destructive/10" />
             )}
           </>
         )}
 
-        {isInvalidToken && apiErrorMessages.length > 0 && (
+        {isInvalidToken && error && (
           <>
-            <div className="space-y-1 p-0 text-center text-xs text-destructive">
-              {apiErrorMessages.map((message) => (
-                <h1 className="text-xl font-bold mb-4" key={message}>
-                  {message}
-                </h1>
-              ))}
-            </div>
+            <ErrorMessages error={error} className="bg-destructive/10" />
             <Link
               to="/forgot-password"
               className="text-primary underline hover:text-primary/80 text-center"

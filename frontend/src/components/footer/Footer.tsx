@@ -1,17 +1,19 @@
 import { usePublicSettings } from '@/features/settings/hooks/usePublicSettings';
 import FooterNavigation from './FooterNavigation';
 import FooterShopDetails from './FooterShopDetails';
+import Loading from '../common/Loading';
+import ErrorMessages from '../common/ErrorMessages';
 
 const Footer = () => {
   const year = new Date().getFullYear();
   const { data, isLoading, error } = usePublicSettings();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <Loading className="w-12 h-12" title="Loading footer..." />;
   }
 
   if (error) {
-    return <div>Error: {error.message}</div>;
+    return <ErrorMessages error={error} />;
   }
 
   if (!data) {

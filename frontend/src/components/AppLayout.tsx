@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router';
+import { Outlet, ScrollRestoration } from 'react-router';
 import Header from './header/Header';
 import Footer from './footer/Footer';
 import Sidebar from './sidebar/Sidebar';
@@ -19,6 +19,7 @@ const AppLayout = () => {
           <Sidebar />
           <main id="main-content" className="min-w-0 flex-1 px-4">
             <Outlet />
+            <ScrollRestoration />
           </main>
         </div>
         <Footer />

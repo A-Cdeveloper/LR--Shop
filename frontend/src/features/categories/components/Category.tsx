@@ -1,13 +1,12 @@
-import { getApiError, getApiErrorMessages } from '@/lib/apiError';
 import { useCategory } from '../hooks/useCategory';
+import Loading from '@/components/common/Loading';
+import ErrorMessages from '@/components/common/ErrorMessages';
 
 export const Category = ({ slug }: { slug: string }) => {
   const { category, isLoading, error } = useCategory(slug);
 
-  const apiErrorMessages = getApiErrorMessages(getApiError(error));
-
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <h1 className="text-2xl font-bold">{apiErrorMessages}</h1>;
+  if (isLoading) return <Loading className="w-12 h-12" title="Loading category..." />;
+  if (error) return <ErrorMessages error={error} />;
 
   return (
     <div>

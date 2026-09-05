@@ -4,12 +4,12 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import InputCustum from '@/components/common/InputGroup';
 import { Button } from '@shop/ui';
-import { getApiError, getApiErrorMessages } from '@/lib/apiError';
 
 import { useLogin } from '../hooks/useLogin';
 import { loginSchema, type LoginCredentials } from '../schemas/loginSchema';
 import { getZodFieldErrors } from '@/lib/formErrors';
 import FormWrapper from './FormWrapper';
+import ErrorMessages from '@/components/common/ErrorMessages';
 
 const LoginForm = () => {
   const { loginMutation, isPending, error } = useLogin();
@@ -17,8 +17,6 @@ const LoginForm = () => {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof LoginCredentials, string>>>(
     {},
   );
-
-  const apiErrorMessages = getApiErrorMessages(getApiError(error));
 
   const handleSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -65,13 +63,7 @@ const LoginForm = () => {
           )}
         </Button>
 
-        {apiErrorMessages.length > 0 && (
-          <div className="space-y-1 text-xs bg-destructive/10 p-3 text-destructive text-center">
-            {apiErrorMessages.map((message) => (
-              <p key={message}>{message}</p>
-            ))}
-          </div>
-        )}
+        {error && <ErrorMessages error={error} className="bg-destructive/10" />}
 
         <div className="flex flex-col gap-2 justify-center items-center mt-3">
           <p className="text-muted-foreground">

@@ -1,15 +1,17 @@
 import { Link } from 'react-router-dom';
 import { useCategories } from '../hooks/useCategories';
+import Loading from '@/components/common/Loading';
+import ErrorMessages from '@/components/common/ErrorMessages';
 
 const CategoriesGrid = () => {
   const { categories, isLoading, error } = useCategories();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <Loading className="w-12 h-12" title="Loading categories grid..." />;
   }
 
   if (error) {
-    return <div>Error: {error.message}</div>;
+    return <ErrorMessages error={error} />;
   }
 
   if (categories?.length === 0) {
