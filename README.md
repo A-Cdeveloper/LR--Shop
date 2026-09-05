@@ -6,13 +6,16 @@ E-commerce platform built with Laravel and React.
 
 - **Backend:** Laravel 12, MySQL, Sanctum (Bearer tokens)
 - **Frontend:** React, Vite, TypeScript, React Router, TanStack Query, Tailwind CSS v4, Zod
+- **Shared TypeScript API types:** `packages/api-types` via npm workspaces
 
 ## Structure
 
 ```text
 LR--Shop/
-├── backend/     # REST API
-└── frontend/    # React storefront
+├── backend/            # REST API
+├── frontend/           # React storefront
+└── packages/
+    └── api-types/      # Shared API types for frontend applications
 ```
 
 ## Backend status
@@ -601,7 +604,9 @@ php artisan serve
 npm install
 ```
 
-Uses Husky + Commitlint for conventional commits.
+Run this command from the repository root. It installs the root tooling,
+links the npm workspaces, and makes `@shop/api-types` available to the frontend.
+It also initializes Husky and Commitlint for conventional commits.
 
 ### Frontend
 
@@ -612,6 +617,29 @@ npm run dev
 ```
 
 The frontend runs by default at `http://localhost:5173`.
+
+### Shared API types
+
+API/domain types shared by the React storefront and future frontend
+applications live in `packages/api-types/src/`:
+
+```text
+packages/api-types/src/
+├── auth.ts
+├── categories.ts
+├── settings.ts
+└── index.ts
+```
+
+Import shared types from the package instead of duplicating them inside a
+frontend feature:
+
+```ts
+import type { Category } from '@shop/api-types';
+```
+
+Frontend-specific types, such as Zod form credentials, component props, and
+UI state, remain inside the relevant frontend feature.
 
 ## Later polish
 
