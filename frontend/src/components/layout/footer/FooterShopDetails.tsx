@@ -1,4 +1,4 @@
-import type { PublicSettings } from '@/features/settings/types/publicSettings';
+import type { PublicSettings } from '@shop/api-types';
 import Logo from '../header/Logo';
 
 const FooterShopDetails = ({ settings }: { settings: PublicSettings['settings'] }) => {
