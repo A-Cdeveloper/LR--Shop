@@ -6,26 +6,24 @@ import { createBrowserRouter } from 'react-router';
 
 import ErrorPage from '@/pages/ErrorPage';
 import NotFoundPage from '@/pages/NotFoundPage';
-import CartPage from '@/pages/CartPage';
-
-import ContactPage from '@/pages/ContactPage';
-import TermsPage from '@/pages/TermsPage';
-import AccountPage from '@/pages/AccountPage';
-import LoginPage from '@/pages/LoginPage';
-import RegisterPage from '@/pages/RegisterPage';
-import OrdersPage from '@/pages/OrdersPage';
-import OrderPage from '@/pages/OrderPage';
-import CheckoutPage from '@/pages/CheckoutPage';
-import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
-import ResetPasswordPage from '@/pages/ResetPasswordPage';
-import VerifyEmailPage from '@/pages/VerifyEmailPage';
 
 const HomePage = lazy(() => import('@/pages/HomePage'));
-
+const CartPage = lazy(() => import('@/pages/CartPage'));
 const CategoriesPage = lazy(() => import('@/pages/CategoriesPage'));
 const CategoryPage = lazy(() => import('@/pages/CategoryPage'));
 const ProductsPage = lazy(() => import('@/pages/ProductsPage'));
 const SingleProductPage = lazy(() => import('@/pages/SingleProductPage'));
+const ContactPage = lazy(() => import('@/pages/ContactPage'));
+const TermsPage = lazy(() => import('@/pages/TermsPage'));
+const AccountPage = lazy(() => import('@/pages/AccountPage'));
+const OrdersPage = lazy(() => import('@/pages/OrdersPage'));
+const OrderPage = lazy(() => import('@/pages/OrderPage'));
+const CheckoutPage = lazy(() => import('@/pages/CheckoutPage'));
+const LoginPage = lazy(() => import('@/pages/LoginPage'));
+const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('@/pages/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('@/pages/ResetPasswordPage'));
+const VerifyEmailPage = lazy(() => import('@/pages/VerifyEmailPage'));
 
 export const router = createBrowserRouter([
   {

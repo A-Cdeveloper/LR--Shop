@@ -31,7 +31,7 @@ export default defineConfig({
           groups: [
             {
               name: 'react-vendor',
-              test: /node_modules\/(react|react-dom|react-router-dom|@tanstack\/react-query|@tanstack\/react-query-devtools|@base-ui\/react)/,
+              test: /node_modules\/(react|react-dom|react-router|react-router-dom|@tanstack\/react-query|@tanstack\/react-query-devtools|@base-ui\/react|axios|zod)/,
             },
             {
               name: 'ui-vendor',

@@ -1,4 +1,6 @@
+import { Suspense } from 'react';
 import { Outlet, ScrollRestoration } from 'react-router';
+import Loading from '@/components/common/Loading';
 import Header from './header/Header';
 import Footer from './footer/Footer';
 import Sidebar from './sidebar/Sidebar';
@@ -18,7 +20,9 @@ const AppLayout = () => {
         <div className="flex flex-1 py-8 ">
           <Sidebar />
           <main id="main-content" className="min-w-0 flex-1 px-4">
-            <Outlet />
+            <Suspense fallback={<Loading className="py-12" title="Loading page..." />}>
+              <Outlet />
+            </Suspense>
             <ScrollRestoration />
           </main>
         </div>
