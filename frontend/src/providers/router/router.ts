@@ -1,12 +1,13 @@
+import { lazy } from 'react';
 import AppLayout from '@/components/AppLayout';
-import HomePage from '@/pages/HomePage';
+import AuthLayout from '@/components/AuthLayout';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { createBrowserRouter } from 'react-router';
+
 import ErrorPage from '@/pages/ErrorPage';
 import NotFoundPage from '@/pages/NotFoundPage';
 import CartPage from '@/pages/CartPage';
-import CategoriesPage from '@/pages/CategoriesPage';
-import CategoryPage from '@/pages/CategoryPage';
-import ProductsPage from '@/pages/ProductsPage';
-import SingleProductPage from '@/pages/SingleProductPage';
+
 import ContactPage from '@/pages/ContactPage';
 import TermsPage from '@/pages/TermsPage';
 import AccountPage from '@/pages/AccountPage';
@@ -18,9 +19,13 @@ import CheckoutPage from '@/pages/CheckoutPage';
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import VerifyEmailPage from '@/pages/VerifyEmailPage';
-import { createBrowserRouter } from 'react-router';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import AuthLayout from '@/components/AuthLayout';
+
+const HomePage = lazy(() => import('@/pages/HomePage'));
+
+const CategoriesPage = lazy(() => import('@/pages/CategoriesPage'));
+const CategoryPage = lazy(() => import('@/pages/CategoryPage'));
+const ProductsPage = lazy(() => import('@/pages/ProductsPage'));
+const SingleProductPage = lazy(() => import('@/pages/SingleProductPage'));
 
 export const router = createBrowserRouter([
   {

@@ -15,4 +15,22 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            {
+              name: 'react-vendor',
+              test: /node_modules\/(react|react-dom|react-router-dom|@tanstack\/react-query|@tanstack\/react-query-devtools|@base-ui\/react)/,
+            },
+            {
+              name: 'ui-vendor',
+              test: /node_modules\/(lucide-react|sonner|next-themes)/,
+            },
+          ],
+        },
+      },
+    },
+  },
 });
